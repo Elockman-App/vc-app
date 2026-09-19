@@ -1,113 +1,87 @@
 # VC DEDEKTİFLERİ 2.0 — Oyun Sunucusu
 
-Kurumsal içi ağda (internetsiz) çalışan, sinematik/graphic-novel formatındaki
-"VC Dedektifleri 2.0" deneyiminin dijital oyun motoru. Bu sürüm, doğrusal akışı
-(`Açılış → Bölüm 1 → Ana Kanıt A → Bölüm 2 → ... → Final Dosyası → Son Gece →
-Kapanış`) ve `VC_Dedektifleri_2.0_FINAL_PRODUCTION_EDITION.md` dokümanındaki
-7 alanlı mini vaka modelini (Hero Görsel, Olay Anı, Konuşma Balonları, Kanıt
-Anı, Karar Sorusu, Doğru Çözüm, Final İçgörüsü) birebir uygular.
+Şirket içi etik ve değerler oyunu. Takımlar telefondan oynar: 9 kısa vaka (olay, kanıt, karar sorusu),
+3 bölüm, 3 kilitli not parçası, Final Dosyası ve Son Gece. Oyun **Türkçe ve İngilizce** oynanabilir.
 
-## Mimari
+Canlı adres: https://vc-dedektifleri.onrender.com (oyuncular `/play`, yönetici `/admin`)
+
+## Nasıl çalışır?
 
 | Katman | Teknoloji |
 |---|---|
-| Frontend | React + Vite (mobil öncelikli, koyu sinematik tema) |
-| Backend | Node.js + Express |
-| Veritabanı | SQLite (`server/db/game.sqlite3`) |
-| Dağıtım | Tek Windows dizüstü bilgisayar, şirket WiFi'ı |
+| Arayüz | React + Vite (telefon öncelikli) |
+| Sunucu | Node.js + Express |
+| Veritabanı | SQLite (Node'un yerleşik `node:sqlite` modülü) |
+| Yayın | Render (ücretsiz plan) |
 
-**Önemli mimari fark (1.0'a göre):** Karar Anı soruları artık çoktan seçmeli
-değil, **açık uçlu**dur. Takımlar telefondan serbest metin gönderir; facilitator
-admin panelindeki **Değerlendirme Kuyruğu**'ndan cevapları okuyup 0-100 arası
-puan girer. Tek otomatik puanlanan bölüm, Son Gece'deki "Üç Yolun Sınavı"dır
-(sabit doğru cevapları vardır).
+Akış: Açılış → Bölüm 1 → Ana Kanıt A → Bölüm 2 → Ana Kanıt B → Bölüm 3 → Ana Kanıt C → Final Dosyası → Son Gece → Kapanış.
 
-## Kurulum (Bir Kez, İnternetli Ortamda)
+Karar soruları açık uçludur. Takımlar serbest metin yazar, oyun yöneticisi **Değerlendirme Kuyruğu**'ndan
+0-100 arası puan verir. Otomatik puanlanan tek bölüm Son Gece'deki "Üç Yolun Sınavı"dır.
+İlk gönderilen cevap kalıcıdır, sonradan değiştirilemez.
 
-1. [Node.js LTS](https://nodejs.org) kurun (v18+).
-2. Bu klasörü dizüstü bilgisayara kopyalayın.
-3. `install.bat`'a çift tıklayın (hem sunucu hem arayüz bağımlılıklarını kurar
-   ve arayüzü derler).
-4. Doğrulama: `server` klasöründe `npm test` — tüm testler geçmeli
-   (`✅ TÜM SMOKE TESTLER GEÇTİ` ve `✅ ADMİN TESTLERİ GEÇTİ`).
+## Önemli: Render ücretsiz planı
 
-## Çalıştırma (Etkinlik Günü, İnternetsiz)
+- Veritabanı diski geçicidir. Sunucu yeniden başlarsa (yeni push, 15 dakika hareketsizlik sonrası uyku vb.) **tüm veriler sıfırlanır**.
+- Oyun günü **push yapmayın**. Push, Render'ı yeniden başlatır ve açık oyunları siler.
+- Koruma: Admin panelinden **yedek indirin**, sorun olursa **geri yükleyin**. Panel ayrıca tarayıcıda otomatik son yedeği tutar.
+- 15 dakika hareketsiz kalan sunucu uyur, ilk açılış yavaştır. Oyundan önce `/play` adresini bir kez açın.
 
-1. Dizüstü bilgisayarı etkinlik WiFi'ına bağlayın.
-2. `start.bat`'a çift tıklayın.
-3. Konsolda görünen adresleri kullanın:
-   - **Admin (projeksiyona yansıtın):** `http://<ip>:3000/admin`
-   - **Oyuncu girişi (QR ile taranır):** `http://<ip>:3000/play`
+## Yönetici (admin) paneli
 
-## Admin Paneli Girişi (PIN)
+`/admin` adresi **PIN** ile korunur.
 
-Admin paneli (`/admin`) ve tüm `/api/admin/*` rotaları **PIN** ile korunur.
+- Varsayılan PIN `server/utils/adminAuth.js` içinde (`DEFAULT_PIN`). `ADMIN_PIN` ortam değişkeni tanımlıysa o kullanılır
+  (Render → servis → Environment). Depo herkese açıksa varsayılan PIN görünür; depoyu "private" yapın veya `ADMIN_PIN` tanımlayın.
+- PIN'i yanlış girenler dakikada 5 denemeyle sınırlanır, oturum 12 saat geçerlidir.
 
-- **Varsayılan:** `ADMIN_PIN` ortam değişkeni tanımlı değilse kodda tanımlı sabit PIN kullanılır
-  (`server/utils/adminAuth.js` → `DEFAULT_PIN`). PIN her açılışta aynıdır.
-- **Değiştirmek için:** Render → servis → *Environment* → `ADMIN_PIN` ekleyin (yerelde `set ADMIN_PIN=123456`).
-  Ortam değişkeni varsa varsayılanın yerine o kullanılır. Depo herkese açıksa varsayılan PIN kaynak kodda
-  görünür; daha güvenli olması için `ADMIN_PIN` tanımlayın veya depoyu "private" yapın.
-- PIN'i yanlış girenler dakikada 5 denemeyle sınırlanır; oturum 12 saat geçerlidir.
-- Oyuncu ekranı (`/play`) PIN gerektirmez.
+Panelde neler var:
 
-**Oturumu Sıfırla** artık "SIFIRLA" yazılmasını ister ve silmeden önce otomatik yedek alır
-(`server/db/backups/yedek-<tarih>.json`). Yanlış puan girdiyseniz **Puanlananlar** sekmesinden düzeltebilirsiniz.
+- **Genel bakış ve Değerlendirme Kuyruğu:** takımlar, puanlar, bekleyen cevaplar.
+- **Tartışma sekmesi:** her vaka için takımların cevapları, tartışma için.
+- **Vaka İçeriği:** vaka metinlerini (TR/EN ayrı) panelden düzenleme, özgün metne geri dönme.
+- **Rapor:** oyun sonrası özet (`/report`).
+- **Skor tablosu:** `/scoreboard` herkese açık ekran, panelden gizlenebilir.
+- **Ayarlar:** vaka süresi, Final Parça A açık/kapalı, duyuru gönderme.
+- **Yedek / Geri yükleme / Oturumu sıfırla:** sıfırlama "SIFIRLA" yazılmasını ister ve öncesinde otomatik yedek alır.
 
-## Facilitator İçin Notlar
+## Oyuncu tarafı
 
-- **Değerlendirme Kuyruğu** admin panelinde ayrı bir sekmedir; bekleyen cevap
-  sayısı sekme başlığında görünür. Oyunun akışını yavaşlatmaz — takımlar puan
-  beklemeden bir sonraki adıma geçer, siz arka planda puanlarsınız.
-- **Final Parça A**, admin panelinden açık/kapalı yapılabilir (30 dakikalık
-  hedefe sıkıştırmak için kapatılması önerilir — bkz. Final Production Edition §6.2).
-- Hero görseller `client/public/images/` altındadır. Şu an 5 genel referans
-  görseli bölüm bazında dönüşümlü kullanılıyor (bkz. Director's Cut
-  değerlendirmesi §3); gerçek sahneye özel görseller hazır olduğunda bu
-  klasördeki dosyaları **aynı isimlerle** değiştirmeniz yeterlidir, kod
-  değişikliği gerekmez.
+- Takım kurma veya **takım koduyla** başka telefondan katılma.
+- Kod Defteri (açılan Ana Kanıt kodları), Sözlük, "Nasıl oynanır?" kartı.
+- Dil seçimi (TR/EN), tarayıcıda hatırlanır.
 
-## Proje Yapısı
+## Kendi bilgisayarında çalıştırma (geliştirme)
+
+Node.js 22.5 veya üstü gerekir (yerleşik SQLite için).
+
+```
+npm run install-all     # sunucu ve arayüz paketlerini kurar
+npm run build           # arayüzü derler
+npm start               # derler ve sunucuyu başlatır
+npm test                # sunucu testleri (smoke + admin)
+```
+
+## Proje yapısı
 
 ```
 vc-app/
 ├── server/
-│   ├── server.js              # API + derlenmiş arayüzü sunar
-│   ├── db.js                  # SQLite şeması (6 tablo)
-│   ├── smoketest.js           # `npm test` ile çalışan doğrulama
-│   ├── admintest.js           # Admin yetki/puanlama/sıfırlama testleri (geçici DB kullanır)
-│   ├── data/cases.js          # 3 bölüm + 9 mini vaka + Final + Son Gece verisi
-│   ├── utils/
-│   │   ├── stages.js          # Doğrusal akış aşama listesi
-│   │   ├── scoring.js         # Toplam puan hesaplama (4 kaynaktan)
-│   │   ├── adminAuth.js       # Admin PIN girişi + token doğrulama
-│   │   ├── parseScore.js      # Facilitator puan doğrulaması
-│   │   └── backup.js          # Sıfırlama öncesi JSON yedeği
-│   └── routes/
-│       ├── teams.js           # Takım oluşturma + aşama ilerletme
-│       ├── miniVaka.js        # Olay/Kanıt/Karar içeriği + cevap gönderme
-│       ├── anaKanit.js        # Ana Kanıt reveal + facilitator puanı
-│       ├── final.js           # Kilit açma + Parça A
-│       ├── sonGece.js         # Üç Yolun Sınavı (otomatik puanlı)
-│       ├── admin.js           # Genel bakış + Değerlendirme Kuyruğu
-│       ├── session.js         # Oyuncuya açık oturum ayarları
-│       └── qr.js              # QR kod üretimi
+│   ├── server.js, db.js
+│   ├── data/cases.js, cases.en.js   # vakalar (TR ve İngilizce katmanı)
+│   ├── routes/                      # teams, miniVaka, anaKanit, final, sonGece, admin, adminExtra, scoreboard, session, qr
+│   ├── utils/                       # stages, scoring, adminAuth, backup, contentStore, joinCode, lang ...
+│   ├── smoketest.js, admintest.js
 └── client/
-    ├── public/images/         # Hero görseller (9 vaka + Son Gece + Kapanış)
+    ├── public/images/               # hero görseller (aynı isimle değiştirilebilir)
     └── src/
-        ├── pages/play/        # Her ekran (OlayAni, KanitAni, KararAni, ...)
-        ├── pages/AdminDashboard.jsx
-        ├── components/        # KanitCard, SpeechBubble, BolumTheme
-        ├── data/bolumler.js   # Bölüm renk/başlık referansı (hassas değil)
-        └── context/GameContext.jsx  # Doğrusal akış state machine'i
+        ├── pages/play/              # oyuncu ekranları
+        ├── pages/                   # AdminDashboard, ScoreboardPage, ReportPage
+        ├── components/, context/, i18n.js
 ```
 
 ## Notlar
 
-- Veritabanı, Node.js'in kendi yerleşik `node:sqlite` modülünü kullanır — hiçbir
-  native paket derlemesi (Python/C++ derleyici) gerekmez. `install.bat`'ın
-  internet gerektirmesinin tek sebebi `express`/`cors`/`nanoid`/`qrcode` gibi
-  sade JavaScript paketlerini indirmektir.
-- Puanlama mantığı ve Karar Anı "Doğru Çözüm" referansları sadece cevap
-  gönderildikten SONRA istemciye açılır — önceden sızdırılmaz
-  (`server/routes/miniVaka.js` → `publicMiniVaka()`).
+- Puanlama mantığı ve "Doğru Çözüm" referansları oyuncuya ancak cevap gönderildikten sonra açılır.
+- Vaka metinleri `server/data/cases.js` içindedir. Panelden yapılan düzenlemeler veritabanında durur
+  ve yedeğe dahildir. Kalıcı değişiklik için dosyayı güncelleyin.
