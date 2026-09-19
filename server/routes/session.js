@@ -16,6 +16,7 @@ router.get("/", (req, res) => {
   res.json({
     sessionName: cfg?.session_name || "VC Dedektifleri 2.0",
     finalParcaAEnabled: !!cfg?.final_parca_a_enabled,
+    caseTimerSeconds: cfg?.case_timer_seconds ?? 180,
     broadcastMessage: cfg?.broadcast_message || null,
     broadcastUpdatedAt: cfg?.broadcast_updated_at || null
   });

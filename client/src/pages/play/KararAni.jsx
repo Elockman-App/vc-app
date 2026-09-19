@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useGame } from "../../context/GameContext";
 import { api } from "../../api";
 import { useLang } from "../../i18n";
@@ -8,10 +8,35 @@ import { soundEngine } from "../../utils/soundEngine";
 export default function KararAni() {
   const { team, miniVaka, advance } = useGame();
   const { t } = useLang();
-  const [text, setText] = useState("");
+  // Yazılan cevap taslağı tarayıcıda saklanır: sayfa yenilenirse ya da kapanırsa kaybolmaz
+  const draftKey = `vc2_draft_${team.id}_${team.currentMiniVaka}`;
+  const [text, setText] = useState(() => {
+    try {
+      return localStorage.getItem(draftKey) || "";
+    } catch (e) {
+      return "";
+    }
+  });
+  const [timerSec, setTimerSec] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [reveal, setReveal] = useState(null);
   const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    if (reveal) return;
+    try {
+      if (text) localStorage.setItem(draftKey, text);
+      else localStorage.removeItem(draftKey);
+    } catch (e) {}
+  }, [text, draftKey, reveal]);
+
+  // Vaka başına süre oyun yöneticisi tarafından ayarlanır (0 = sayaç yok)
+  useEffect(() => {
+    api
+      .getSession()
+      .then((s) => setTimerSec(typeof s.caseTimerSeconds === "number" ? s.caseTimerSeconds : 180))
+      .catch(() => setTimerSec(180));
+  }, []);
 
   if (!miniVaka) return <p className="spinner-text">{t("loading")}</p>;
 
@@ -41,6 +66,9 @@ export default function KararAni() {
     try {
       const res = await api.submitAnswer(miniVaka.sira, team.id, text);
       soundEngine.playSuccessSound();
+      try {
+        localStorage.removeItem(draftKey);
+      } catch (e2) {}
       setReveal(res);
     } catch (e) {
       setErr(e.message || t("dec.sendFail"));
@@ -53,7 +81,7 @@ export default function KararAni() {
     <div className="screen dark" style={{ padding: "1.2rem 1.1rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div className="beat-tag karar">{t("beat.decision")}</div>
-        {!reveal && <CaseTimer durationSeconds={180} />}
+        {!reveal && timerSec > 0 && <CaseTimer durationSeconds={timerSec} />}
       </div>
 
       <p className="karar-question">“{miniVaka.kararSorusu}”</p>

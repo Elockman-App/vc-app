@@ -305,8 +305,28 @@ function getFinal(lang) {
   return dataFor(lang).FINAL;
 }
 
-function getMiniVaka(sira, lang) {
+// Panelden düzenlenen metinler (bkz. utils/contentStore.js): { tr: { "1": {...} }, en: { ... } }
+let OVERRIDES = { tr: {}, en: {} };
+
+function setOverrides(map) {
+  OVERRIDES = { tr: (map && map.tr) || {}, en: (map && map.en) || {} };
+}
+
+/** Kodla gelen özgün (düzenlenmemiş) vaka */
+function getBaseMiniVaka(sira, lang) {
   return dataFor(lang).MINI_VAKALAR.find((mv) => mv.sira === Number(sira)) || null;
+}
+
+function getMiniVaka(sira, lang) {
+  const base = getBaseMiniVaka(sira, lang);
+  if (!base) return null;
+  const ov = (OVERRIDES[lang === "en" ? "en" : "tr"] || {})[String(base.sira)];
+  if (!ov) return base;
+  return {
+    ...base,
+    ...ov,
+    olayAni: { ...base.olayAni, ...(ov.olayAni || {}) }
+  };
 }
 
 function getBolum(num, lang) {
@@ -325,11 +345,10 @@ function getBolumByMiniVaka(sira, lang) {
  * sadece ham veriyi tutar, sızdırma kararı route katmanına aittir (bkz. Plan §3).
  */
 function listMiniVakaMeta(lang) {
-  return dataFor(lang).MINI_VAKALAR.map((mv) => ({
-    sira: mv.sira,
-    bolum: mv.bolum,
-    baslik: mv.baslik
-  }));
+  return dataFor(lang).MINI_VAKALAR.map((base) => {
+    const mv = getMiniVaka(base.sira, lang);
+    return { sira: mv.sira, bolum: mv.bolum, baslik: mv.baslik };
+  });
 }
 
 module.exports = {
@@ -337,6 +356,8 @@ module.exports = {
   MINI_VAKALAR,
   FINAL,
   getFinal,
+  setOverrides,
+  getBaseMiniVaka,
   getMiniVaka,
   getBolum,
   getBolumByMiniVaka,

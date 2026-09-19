@@ -6,6 +6,7 @@ const { suggestScore } = require("../utils/keywordScore");
 const { requireAdmin, loginHandler } = require("../utils/adminAuth");
 const { parseScore } = require("../utils/parseScore");
 const { backupAll, dumpAll, restoreAll } = require("../utils/backup");
+const { overrideCount } = require("../utils/contentStore");
 
 const router = express.Router();
 
@@ -59,6 +60,7 @@ router.get("/overview", (req, res) => {
       currentBolum: t.current_bolum,
       currentMiniVaka: t.current_mini_vaka,
       totalScore: t.total_score,
+      joinCode: t.join_code || null,
       answeredCount,
       createdAt: t.created_at,
       updatedAt: t.updated_at
@@ -68,6 +70,9 @@ router.get("/overview", (req, res) => {
   res.json({
     sessionName: sessionConfig?.session_name || "VC Dedektifleri 2.0",
     finalParcaAEnabled: !!sessionConfig?.final_parca_a_enabled,
+    scoresHidden: !!sessionConfig?.scoreboard_hidden,
+    caseTimerSeconds: sessionConfig?.case_timer_seconds ?? 180,
+    contentOverrideCount: overrideCount(),
     teamCount: teamData.length,
     maxTotalScore: MAX_TOTAL_SCORE,
     serverTime: new Date().toISOString(),
@@ -247,7 +252,17 @@ router.put("/answers/:answerId/score", (req, res) => {
 
 // PUT /api/admin/session  { name?, finalParcaAEnabled? }
 router.put("/session", (req, res) => {
-  const { name, finalParcaAEnabled } = req.body || {};
+  const { name, finalParcaAEnabled, scoresHidden, caseTimerSeconds } = req.body || {};
+  if (scoresHidden !== undefined) {
+    db.prepare("UPDATE session_config SET scoreboard_hidden = ? WHERE id = 1").run(scoresHidden ? 1 : 0);
+  }
+  if (caseTimerSeconds !== undefined) {
+    const n = Math.round(Number(caseTimerSeconds));
+    if (!Number.isFinite(n) || n < 0 || n > 3600) {
+      return res.status(400).json({ error: "Süre 0 ile 3600 saniye arasında olmalıdır (0 = sayaç kapalı)." });
+    }
+    db.prepare("UPDATE session_config SET case_timer_seconds = ? WHERE id = 1").run(n);
+  }
   if (name !== undefined) {
     db.prepare("UPDATE session_config SET session_name = ? WHERE id = 1").run(
       String(name).trim().slice(0, 80) || "VC Dedektifleri 2.0"
@@ -259,7 +274,12 @@ router.put("/session", (req, res) => {
     );
   }
   const cfg = db.prepare("SELECT * FROM session_config WHERE id = 1").get();
-  res.json({ sessionName: cfg.session_name, finalParcaAEnabled: !!cfg.final_parca_a_enabled });
+  res.json({
+    sessionName: cfg.session_name,
+    finalParcaAEnabled: !!cfg.final_parca_a_enabled,
+    scoresHidden: !!cfg.scoreboard_hidden,
+    caseTimerSeconds: cfg.case_timer_seconds
+  });
 });
 
 // POST /api/admin/broadcast  { message }  — boş mesaj, yayındaki duyuruyu kaldırır

@@ -142,6 +142,32 @@ try {
   /* Kolon zaten varsa yoksay */
 }
 
+// Takım giriş kodu (telefon değiştiren / sayfası kapanan oyuncu takımına geri dönebilsin)
+try {
+  db.exec("ALTER TABLE teams ADD COLUMN join_code TEXT");
+} catch (e) {
+  /* Kolon zaten varsa yoksay */
+}
+
+// Skor tablosu puan gizleme + vaka başına süre (sn) ayarları
+try {
+  db.exec("ALTER TABLE session_config ADD COLUMN scoreboard_hidden INTEGER NOT NULL DEFAULT 0");
+} catch (e) {}
+try {
+  db.exec("ALTER TABLE session_config ADD COLUMN case_timer_seconds INTEGER NOT NULL DEFAULT 180");
+} catch (e) {}
+
+// Panelden düzenlenen vaka metinleri (kodla gelen metnin üzerine bindirilir)
+db.exec(`
+CREATE TABLE IF NOT EXISTS case_overrides (
+  sira INTEGER NOT NULL,
+  lang TEXT NOT NULL,
+  data TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (sira, lang)
+);
+`);
+
 const cfg = db.prepare("SELECT * FROM session_config WHERE id = 1").get();
 if (!cfg) {
   db.prepare(

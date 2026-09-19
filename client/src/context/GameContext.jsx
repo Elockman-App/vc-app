@@ -174,6 +174,21 @@ export function GameProvider({ children }) {
     return t;
   }, []);
 
+  /** Mevcut bir takıma takım adı + 4 haneli kodla katıl (başka telefon / kapanan sayfa) */
+  const joinTeam = useCallback(
+    async (name, code) => {
+      const t = await api.joinTeam(name, code);
+      try {
+        localStorage.setItem(STORAGE_KEY, t.id);
+      } catch (e) {}
+      setTeam(t);
+      setTeamMissing(false);
+      await loadMiniVakaIfNeeded(t);
+      return t;
+    },
+    [loadMiniVakaIfNeeded]
+  );
+
   /** Admin yedeği geri yüklediyse eski takım kimliği yeniden geçerli olur: varsa doğrudan onunla devam et.
    * Kayıt hâlâ yoksa false döner (kurtarma ekranı açık kalır). */
   const resumeIfExists = useCallback(async () => {
@@ -266,6 +281,7 @@ export function GameProvider({ children }) {
         netDown,
         teamMissing,
         createTeam,
+        joinTeam,
         restoreTeam,
         resumeIfExists,
         startFresh,

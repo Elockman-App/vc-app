@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { api, adminToken } from "../api";
+import DiscussionTab from "./admin/DiscussionTab";
+import ContentTab from "./admin/ContentTab";
 
 export default function AdminDashboard() {
   // authed: null = kontrol ediliyor, false = giriş gerekli, true = giriş yapıldı
@@ -91,10 +93,11 @@ function readStoredBackup() {
 
 function storeBackup(dump) {
   try {
-    if (dump && dump.tables && dump.tables.teams.length > 0) {
+    const overrideCount = (dump && dump.tables && dump.tables.case_overrides ? dump.tables.case_overrides.length : 0);
+    if (dump && dump.tables && (dump.tables.teams.length > 0 || overrideCount > 0)) {
       localStorage.setItem(
         BACKUP_LS,
-        JSON.stringify({ savedAt: Date.now(), teamCount: dump.tables.teams.length, dump })
+        JSON.stringify({ savedAt: Date.now(), teamCount: dump.tables.teams.length, overrideCount, dump })
       );
     } else {
       localStorage.removeItem(BACKUP_LS);
@@ -230,6 +233,8 @@ function AdminPanel({ onLogout }) {
   const [offline, setOffline] = useState(false);
   const [lastOk, setLastOk] = useState(null);
   const [sessionNameDraft, setSessionNameDraft] = useState(null);
+  const [timerDraft, setTimerDraft] = useState(null);
+  const [timerMsg, setTimerMsg] = useState(null);
   const [storedBackup, setStoredBackup] = useState(() => readStoredBackup());
   const [restoreMsg, setRestoreMsg] = useState(null);
   const [soundOn, setSoundOn] = useState(() => {
@@ -255,6 +260,8 @@ function AdminPanel({ onLogout }) {
     try {
       localStorage.setItem("vc_hide_scores", v ? "1" : "0");
     } catch (e) {}
+    // Canlı skor tablosu (/scoreboard) da aynı ayara uysun
+    api.setSession({ scoresHidden: v }).catch(() => {});
   }
 
   function toggleSound(v) {
@@ -284,7 +291,7 @@ function AdminPanel({ onLogout }) {
       setOffline(false);
       setLastOk(new Date());
       // Takım varken yaklaşık 30 sn'de bir yedeği tarayıcıda tazele
-      if (o.value.teamCount > 0) {
+      if (o.value.teamCount > 0 || o.value.contentOverrideCount > 0) {
         if (tickRef.current % 8 === 0) snapshotBackup();
         tickRef.current += 1;
       } else {
@@ -373,6 +380,23 @@ function AdminPanel({ onLogout }) {
     }
   }
 
+  async function saveTimer() {
+    const n = Number(timerDraft);
+    if (!Number.isFinite(n) || n < 0 || n > 3600) {
+      setTimerMsg("0 ile 3600 arasında bir sayı girin.");
+      return;
+    }
+    try {
+      await api.setSession({ caseTimerSeconds: Math.round(n) });
+      setTimerDraft(null);
+      setTimerMsg("Kaydedildi. Yeni vakalarda geçerli olur.");
+      setTimeout(() => setTimerMsg(null), 3000);
+      refresh();
+    } catch (e) {
+      setTimerMsg(e.message || "Kaydedilemedi.");
+    }
+  }
+
   async function saveSessionName() {
     try {
       await api.setSession({ name: sessionNameDraft });
@@ -447,11 +471,11 @@ function AdminPanel({ onLogout }) {
           ⚠ Sunucuya ulaşılamıyor — ekrandaki veriler eski olabilir. Son başarılı güncelleme: {formatClock(lastOk)}
         </div>
       )}
-      {!offline && overview && overview.teamCount === 0 && storedBackup && storedBackup.teamCount > 0 && (
+      {!offline && overview && overview.teamCount === 0 && (overview.contentOverrideCount || 0) === 0 && storedBackup && (storedBackup.teamCount > 0 || storedBackup.overrideCount > 0) && (
         <div className="admin-banner">
           <span>
             Sunucudaki veri sıfırlanmış görünüyor (sunucu yeniden başlamış olabilir). Bu tarayıcıdaki son yedek:{" "}
-            <b>{storedBackup.teamCount} takım</b>, {formatClock(new Date(storedBackup.savedAt))}.
+            <b>{storedBackup.teamCount} takım{storedBackup.overrideCount > 0 ? ` + ${storedBackup.overrideCount} düzenlenmiş vaka metni` : ""}</b>, {formatClock(new Date(storedBackup.savedAt))}.
           </span>
           <span style={{ whiteSpace: "nowrap" }}>
             <button
@@ -600,9 +624,56 @@ function AdminPanel({ onLogout }) {
               </div>
             </div>
 
+            <div style={{ marginBottom: 10 }}>
+              <div className="muted" style={{ fontSize: "0.78rem", marginBottom: 4 }}>
+                Vaka başına süre (saniye, 0 = sayaç kapalı)
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <input
+                  type="number"
+                  min="0"
+                  max="3600"
+                  className="answer-input"
+                  style={{ minHeight: "auto", padding: "0.45rem", fontSize: "0.88rem", flex: 1, margin: 0 }}
+                  value={timerDraft ?? overview?.caseTimerSeconds ?? 180}
+                  onChange={(e) => setTimerDraft(e.target.value)}
+                />
+                <button
+                  className="btn"
+                  style={{ width: "auto", margin: 0, padding: "0.4em 0.9em", fontSize: "0.8rem" }}
+                  disabled={timerDraft === null}
+                  onClick={saveTimer}
+                >
+                  Kaydet
+                </button>
+              </div>
+              {timerMsg && <div style={{ fontSize: "0.78rem", marginTop: 4, fontWeight: 700 }}>{timerMsg}</div>}
+            </div>
+
+            <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+              <a
+                className="btn secondary"
+                href="/scoreboard"
+                target="_blank"
+                rel="noreferrer"
+                style={{ flex: 1, margin: 0, padding: "0.45em 0.6em", fontSize: "0.8rem", textAlign: "center", textDecoration: "none", color: "#101b3d", borderColor: "#101b3d" }}
+              >
+                📺 Canlı skor tablosu
+              </a>
+              <a
+                className="btn secondary"
+                href="/report"
+                target="_blank"
+                rel="noreferrer"
+                style={{ flex: 1, margin: 0, padding: "0.45em 0.6em", fontSize: "0.8rem", textAlign: "center", textDecoration: "none", color: "#101b3d", borderColor: "#101b3d" }}
+              >
+                📄 Sonuç raporu
+              </a>
+            </div>
+
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.88rem", marginBottom: 10 }}>
               <input type="checkbox" checked={hideScores} onChange={(e) => toggleHideScores(e.target.checked)} />
-              Puanları bu ekranda gizle (projeksiyon)
+              Puanları gizle (bu ekran + canlı skor tablosu)
             </label>
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.88rem", marginBottom: 10 }}>
               <input type="checkbox" checked={soundOn} onChange={(e) => toggleSound(e.target.checked)} />
@@ -736,6 +807,12 @@ function AdminPanel({ onLogout }) {
             <button className={tab === "puanlanan" ? "active" : ""} onClick={() => setTab("puanlanan")}>
               Puanlananlar
             </button>
+            <button className={tab === "tartisma" ? "active" : ""} onClick={() => setTab("tartisma")}>
+              Vaka Tartışma
+            </button>
+            <button className={tab === "icerik" ? "active" : ""} onClick={() => setTab("icerik")}>
+              Vaka İçeriği
+            </button>
           </div>
 
           {tab === "takimlar" && <TeamsTable
@@ -746,6 +823,15 @@ function AdminPanel({ onLogout }) {
             />}
           {tab === "kuyruk" && <EvaluationQueue queue={queue} onScored={refresh} />}
           {tab === "puanlanan" && <ScoredList scored={scored} onScored={refresh} />}
+          {tab === "tartisma" && <DiscussionTab />}
+          {tab === "icerik" && (
+            <ContentTab
+              onChanged={() => {
+                refresh();
+                snapshotBackup();
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
@@ -882,6 +968,7 @@ function TeamRow({ t, nowMs, max, hideScores, onChanged, onTeamDeleted }) {
             {t.members && <div className="muted" style={{ fontSize: "0.78rem" }}>{t.members}</div>}
             <div className="muted" style={{ fontSize: "0.72rem" }}>
               Katıldı: {joined ? formatClock(joined) : "-"}
+              {t.joinCode && <> · Kod: <b style={{ letterSpacing: 1 }}>{t.joinCode}</b></>}
             </div>
             <div style={{ marginTop: 3 }}>
               <button style={linkBtn} onClick={() => setEditing(true)}>Düzenle</button>

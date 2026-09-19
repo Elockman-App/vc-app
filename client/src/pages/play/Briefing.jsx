@@ -21,6 +21,13 @@ export default function Briefing() {
         <div style={{ fontWeight: 700, color: "#ff8080", marginBottom: 6 }}>{t("brief.noteTitle")}</div>
         <div className="muted" style={{ fontStyle: "italic" }}>{t("brief.noteBody")}</div>
       </div>
+      {team?.joinCode && (
+        <div className="card-dark" style={{ textAlign: "center" }}>
+          <div className="muted" style={{ fontSize: "0.8rem", letterSpacing: 2 }}>{t("code.title")}</div>
+          <div style={{ fontSize: "2rem", fontWeight: 800, letterSpacing: 6, color: "var(--gold)" }}>{team.joinCode}</div>
+          <div className="muted" style={{ fontSize: "0.8rem" }}>{t("code.hint")}</div>
+        </div>
+      )}
       <button className="btn" onClick={advance}>
         {t("next")}
       </button>

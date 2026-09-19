@@ -7,7 +7,14 @@ export default function FinalParcaA() {
   const { team, advance } = useGame();
   const { t } = useLang();
   const [enabled, setEnabled] = useState(null);
-  const [text, setText] = useState("");
+  const draftKey = `vc2_draft_${team.id}_A`;
+  const [text, setText] = useState(() => {
+    try {
+      return localStorage.getItem(draftKey) || "";
+    } catch (e) {
+      return "";
+    }
+  });
   const [submitting, setSubmitting] = useState(false);
   const [reveal, setReveal] = useState(null);
   const [err, setErr] = useState(null);
@@ -28,12 +35,23 @@ export default function FinalParcaA() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick]);
 
+  useEffect(() => {
+    if (reveal) return;
+    try {
+      if (text) localStorage.setItem(draftKey, text);
+      else localStorage.removeItem(draftKey);
+    } catch (e) {}
+  }, [text, draftKey, reveal]);
+
   async function submit() {
     if (!text.trim()) return;
     setSubmitting(true);
     setErr(null);
     try {
       const res = await api.submitParcaA(team.id, text);
+      try {
+        localStorage.removeItem(draftKey);
+      } catch (e2) {}
       setReveal(res);
     } catch (e) {
       setErr(e.message || t("pa.sendFail"));

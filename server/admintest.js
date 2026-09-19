@@ -277,6 +277,53 @@ async function waitUp() {
     assert.strictEqual((await call("GET", "/mini-vaka/1?lang=xx")).json.baslik, "KAYAN AN", "bilinmeyen dil Türkçe'ye düşmeli");
     console.log("İngilizce içerik (vaka, kod, Son Gece) doğru geliyor, puanlama dilden bağımsız. ✔");
 
+    // 8d) Yeni özellikler: takıma katılma kodu, skor tablosu, süre ayarı, vaka düzenleme, rapor, tartışma
+    const jt = (await call("POST", "/teams", { name: "Kodlu Takım" })).json;
+    assert.ok(/^\d{4}$/.test(jt.joinCode), "takım 4 haneli kod almalı");
+    const j1 = await call("POST", "/teams/join", { name: "  kodlu takım ", code: jt.joinCode });
+    assert.strictEqual(j1.json.id, jt.id, "ad + kod ile takıma katılınabilmeli");
+    const j2 = await call("POST", "/teams/join", { name: "Kodlu Takım", code: jt.joinCode === "0000" ? "0001" : "0000" });
+    assert.strictEqual(j2.status, 404, "yanlış kod reddedilmeli");
+
+    const sb = (await call("GET", "/scoreboard")).json;
+    assert.ok(sb.teams.length >= 1 && sb.teams[0].score !== null && sb.teams.every((t) => !("id" in t)));
+    await call("PUT", "/admin/session", { scoresHidden: true }, token);
+    const sbHidden = (await call("GET", "/scoreboard")).json;
+    assert.ok(sbHidden.hidden && sbHidden.teams.every((t) => t.score === null), "gizliyken puan dönmemeli");
+    await call("PUT", "/admin/session", { scoresHidden: false }, token);
+
+    assert.strictEqual((await call("GET", "/session")).json.caseTimerSeconds, 180);
+    assert.strictEqual((await call("PUT", "/admin/session", { caseTimerSeconds: 240 }, token)).json.caseTimerSeconds, 240);
+    assert.strictEqual((await call("GET", "/session")).json.caseTimerSeconds, 240);
+    assert.strictEqual((await call("PUT", "/admin/session", { caseTimerSeconds: -5 }, token)).status, 400);
+
+    const disc = await call("GET", "/admin/discussion", null, token);
+    assert.strictEqual(disc.json.cases.length, 9);
+    assert.strictEqual((await call("GET", "/admin/discussion")).status, 401, "tartışma PIN ister");
+    const rep = (await call("GET", "/admin/report", null, token)).json;
+    assert.strictEqual(rep.perCase.length, 9);
+    assert.ok(rep.teamCount >= 1);
+
+    const cont = (await call("GET", "/admin/content", null, token)).json;
+    const c1 = cont.cases[0].tr.current;
+    const edited = { ...c1, baslik: "DEĞİŞEN BAŞLIK", kararSorusu: "Yeni soru?" };
+    const put = await call("PUT", "/admin/content/1/tr", edited, token);
+    assert.strictEqual(put.json.edited, true);
+    assert.strictEqual((await call("GET", "/mini-vaka/1")).json.baslik, "DEĞİŞEN BAŞLIK", "düzenleme oyuncuya yansımalı");
+    assert.strictEqual((await call("GET", "/mini-vaka/1?lang=en")).json.baslik, "THE SLIPPERY MOMENT", "diğer dil etkilenmemeli");
+    assert.ok(!("dogruCozum" in (await call("GET", "/mini-vaka/1")).json), "düzenlenmiş vakada da cevap sızmamalı");
+    const bad = await call("PUT", "/admin/content/1/tr", { ...edited, baslik: "" }, token);
+    assert.strictEqual(bad.status, 400, "boş başlık reddedilmeli");
+    const bk = (await call("GET", "/admin/export-backup", null, token)).json;
+    assert.ok(bk.tables.case_overrides.length === 1, "yedek vaka düzenlemesini içermeli");
+    await call("DELETE", "/admin/content/1/tr", null, token);
+    assert.strictEqual((await call("GET", "/mini-vaka/1")).json.baslik, "KAYAN AN", "silinince özgün metne dönmeli");
+    await call("PUT", "/admin/content/1/tr", edited, token);
+    await call("POST", "/admin/restore", { confirm: "GERI YUKLE", backup: bk }, token);
+    assert.strictEqual((await call("GET", "/mini-vaka/1")).json.baslik, "DEĞİŞEN BAŞLIK", "geri yükleme düzenlemeyi getirmeli");
+    await call("DELETE", "/admin/content/1/tr", null, token);
+    console.log("Takım kodu, skor tablosu, süre ayarı, rapor, tartışma ve vaka düzenleme çalışıyor. ✔");
+
     // 9) Kaba kuvvet sınırı
     let locked = false;
     for (let i = 0; i < 8; i++) {

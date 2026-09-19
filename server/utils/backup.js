@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 const db = require("../db");
+const { loadOverrides } = require("./contentStore");
+const { ensureJoinCodes } = require("./joinCode");
 
 const TABLES = [
   "teams",
@@ -8,7 +10,8 @@ const TABLES = [
   "ana_kanit_progress",
   "final_progress",
   "son_gece_answers",
-  "session_config"
+  "session_config",
+  "case_overrides"
 ];
 
 const BACKUP_DIR = path.join(path.dirname(db.path), "backups");
@@ -62,7 +65,9 @@ function restoreAll(dump) {
       db.prepare(`DELETE FROM ${t}`).run()
     );
     let restoredTeams = 0;
-    ["teams", "team_answers", "ana_kanit_progress", "final_progress", "son_gece_answers", "session_config"].forEach(
+    // Yedekte vaka düzenlemeleri varsa mevcut düzenlemelerin yerine geçer (eski yedeklerde yoksa dokunulmaz)
+    if (dump.tables.case_overrides !== undefined) db.prepare("DELETE FROM case_overrides").run();
+    ["teams", "team_answers", "ana_kanit_progress", "final_progress", "son_gece_answers", "session_config", "case_overrides"].forEach(
       (t) => {
         const rows = dump.tables[t] || [];
         const cols = columnsOf(t);
@@ -77,6 +82,8 @@ function restoreAll(dump) {
       }
     );
     db.exec("COMMIT");
+    ensureJoinCodes(); // eski yedeklerde giriş kodu yoktur
+    loadOverrides();
     return { restoredTeams };
   } catch (e) {
     try {

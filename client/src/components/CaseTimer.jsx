@@ -28,12 +28,17 @@ export default function CaseTimer({ durationSeconds = 180 }) {
     return () => clearInterval(timer);
   }, [secondsLeft]);
 
+  // Süre bittiğinde bir kez uyarı sesi çal
+  useEffect(() => {
+    if (secondsLeft === 0 && durationSeconds > 0) soundEngine.playBroadcastSound();
+  }, [secondsLeft, durationSeconds]);
+
   const mins = Math.floor(secondsLeft / 60);
   const secs = secondsLeft % 60;
   const formatted = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 
   return (
-    <div className={`case-timer-box ${isUrgent ? "urgent" : ""}`}>
+    <div className={`case-timer-box ${isUrgent ? "urgent" : ""} ${secondsLeft <= 0 ? "expired" : ""}`}>
       <span className="timer-icon">⏱️</span>
       <span className="timer-value">{secondsLeft > 0 ? formatted : t("timer.up")}</span>
     </div>

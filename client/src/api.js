@@ -103,6 +103,8 @@ export const api = {
   createTeam: (name, members) =>
     request("/teams", { method: "POST", body: JSON.stringify({ name, members }) }),
   getTeam: (id) => request(`/teams/${id}`),
+  joinTeam: (name, code) => request("/teams/join", { method: "POST", body: JSON.stringify({ name, code }) }),
+  getScoreboard: () => request("/scoreboard"),
   listTeams: () => request("/teams"),
   setStage: (id, stage, bolum, miniVaka) =>
     request(`/teams/${id}/stage`, {
@@ -146,6 +148,12 @@ export const api = {
   checkAdmin: () => request("/admin/check"),
   getScored: () => request("/admin/scored"),
   overview: () => request("/admin/overview"),
+  getDiscussion: () => request("/admin/discussion"),
+  getReport: () => request("/admin/report"),
+  getContent: () => request("/admin/content"),
+  saveContent: (sira, lang, data) =>
+    request(`/admin/content/${sira}/${lang}`, { method: "PUT", body: JSON.stringify(data) }),
+  resetContent: (sira, lang) => request(`/admin/content/${sira}/${lang}`, { method: "DELETE" }),
   queue: () => request("/admin/queue"),
   scoreMiniVaka: (answerId, score) =>
     request(`/admin/answers/${answerId}/score`, {

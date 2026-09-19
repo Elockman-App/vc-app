@@ -611,3 +611,13 @@ table.admin-table td { padding: 0.6em; border-bottom: 1px solid #f0f0f0; vertica
   color: #111;
   opacity: 1;
 }
+
+/* Süre doldu: kırmızı ve yanıp söner */
+.case-timer-box.expired {
+  background: #c62828;
+  color: #fff;
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+@keyframes timer-pulse {
+  50% { opacity: 0.55; }
+}

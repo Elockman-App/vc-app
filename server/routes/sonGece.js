@@ -1,6 +1,6 @@
 const express = require("express");
 const db = require("../db");
-const { FINAL, getFinal } = require("../data/cases");
+const { FINAL, getFinal, getMiniVaka } = require("../data/cases");
 const { langOf } = require("../utils/lang");
 const { recomputeTotalScore } = require("../utils/scoring");
 
@@ -37,6 +37,7 @@ router.post("/sentez", (req, res) => {
     : [Number(satir1), Number(satir2), Number(satir3)];
 
   let score = 0;
+  const lang = langOf(req);
   const detay = FINAL_L.sonGece.ucYolSinavi.map((r, i) => {
     const correct = cevaplar[i] === dogrular[i];
     if (correct) score += 40;
@@ -44,7 +45,8 @@ router.post("/sentez", (req, res) => {
       yolculuk: r.yolculuk,
       seciminiz: cevaplar[i],
       dogruMiniVakaSira: r.dogruMiniVakaSira,
-      dogruMiniVakaBaslik: r.dogruMiniVakaBaslik,
+      // Panelden başlık düzenlenmiş olabilir: güncel başlığı kullan
+      dogruMiniVakaBaslik: getMiniVaka(r.dogruMiniVakaSira, lang)?.baslik || r.dogruMiniVakaBaslik,
       correct
     };
   });

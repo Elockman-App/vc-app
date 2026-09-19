@@ -5,6 +5,10 @@ const cors = require("cors");
 const { getLocalIp } = require("./utils/network");
 const { pinFromEnv } = require("./utils/adminAuth");
 
+// Açılışta: eski takımlara giriş kodu ata, panelden düzenlenmiş vaka metinlerini yükle
+require("./utils/joinCode").ensureJoinCodes();
+require("./utils/contentStore").loadOverrides();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -23,6 +27,8 @@ app.use("/api/final", require("./routes/final"));
 app.use("/api/son-gece", require("./routes/sonGece"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/qr", require("./routes/qr"));
+app.use("/api/scoreboard", require("./routes/scoreboard"));
+app.use("/api/admin", require("./routes/adminExtra"));
 
 app.get("/api/health", (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 

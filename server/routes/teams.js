@@ -3,6 +3,7 @@ const { nanoid } = require("nanoid");
 const db = require("../db");
 const { STAGE_ORDER } = require("../utils/stages");
 const { requireAdmin } = require("../utils/adminAuth");
+const { newJoinCode } = require("../utils/joinCode");
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ function serializeTeam(row) {
     currentStage: row.current_stage,
     currentBolum: row.current_bolum,
     currentMiniVaka: row.current_mini_vaka,
+    joinCode: row.join_code || null,
     totalScore: row.total_score,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -29,12 +31,50 @@ router.post("/", (req, res) => {
   }
   const id = nanoid(8);
   db.prepare(
-    `INSERT INTO teams (id, name, members, current_stage, current_bolum, current_mini_vaka)
-     VALUES (?, ?, ?, 'BRIEFING', 1, 1)`
-  ).run(id, name.trim().slice(0, 60), (members || "").trim().slice(0, 300));
+    `INSERT INTO teams (id, name, members, current_stage, current_bolum, current_mini_vaka, join_code)
+     VALUES (?, ?, ?, 'BRIEFING', 1, 1, ?)`
+  ).run(id, name.trim().slice(0, 60), (members || "").trim().slice(0, 300), newJoinCode());
 
   const row = db.prepare("SELECT * FROM teams WHERE id = ?").get(id);
   res.status(201).json(serializeTeam(row));
+});
+
+// Kod tahminine karşı: IP başına 5 dakikada 10 hatalı giriş
+const joinFails = new Map();
+function joinLocked(ip) {
+  const r = joinFails.get(ip);
+  if (!r) return false;
+  if (Date.now() - r.first > 5 * 60 * 1000) {
+    joinFails.delete(ip);
+    return false;
+  }
+  return r.count >= 10;
+}
+function joinFail(ip) {
+  const r = joinFails.get(ip);
+  if (!r || Date.now() - r.first > 5 * 60 * 1000) joinFails.set(ip, { count: 1, first: Date.now() });
+  else r.count += 1;
+}
+
+// POST /api/teams/join  { name, code }  — mevcut bir takıma (başka telefondan / sayfa kapandıktan sonra) katıl
+router.post("/join", (req, res) => {
+  const ip = req.ip || "unknown";
+  if (joinLocked(ip)) {
+    return res.status(429).json({ error: "Çok fazla hatalı deneme. Birkaç dakika sonra tekrar deneyin." });
+  }
+  const name = String(req.body?.name || "").trim().toLowerCase();
+  const code = String(req.body?.code || "").replace(/\D/g, "");
+  if (!name || code.length !== 4) {
+    return res.status(400).json({ error: "Takım adı ve 4 haneli kodu girin." });
+  }
+  const rows = db.prepare("SELECT * FROM teams WHERE join_code = ?").all(code);
+  const row = rows.find((r) => r.name.trim().toLowerCase() === name);
+  if (!row) {
+    joinFail(ip);
+    return res.status(404).json({ error: "Takım adı ya da kod hatalı." });
+  }
+  joinFails.delete(ip);
+  res.json(serializeTeam(row));
 });
 
 // GET /api/teams  (admin — tüm takımlar)
