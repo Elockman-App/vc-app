@@ -41,9 +41,17 @@ export default function FinalKilit() {
           <p className="muted" style={{ textAlign: "center" }}>
             {t("lock.hint")}
           </p>
+          <div className="card-dark" style={{ textAlign: "center" }}>
+            <div className="muted" style={{ fontSize: "0.75rem", letterSpacing: 2 }}>{t("lock.codes")}</div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 800, letterSpacing: 4, color: "var(--gold)" }}>
+              {(team.codes || []).length
+                ? team.codes.map((c) => `${c.harf}: ${c.kod}`).join("   ")
+                : t("codes.empty")}
+            </div>
+          </div>
           <input
             className="lock-input"
-            placeholder="471295836"
+            placeholder="000000000"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             inputMode="numeric"

@@ -18,6 +18,7 @@ import Kapanis from "./play/Kapanis";
 import { soundEngine } from "../utils/soundEngine";
 import CaseProgressMapModal from "../components/CaseProgressMapModal";
 import BroadcastModal from "../components/BroadcastModal";
+import GlossaryModal from "../components/GlossaryModal";
 import { api } from "../api";
 import { useLang } from "../i18n";
 import LangSwitch from "../components/LangSwitch";
@@ -42,6 +43,7 @@ export default function Play() {
   const { t } = useLang();
   const [muted, setMuted] = useState(soundEngine.isMuted());
   const [showMap, setShowMap] = useState(false);
+  const [showGlossary, setShowGlossary] = useState(false);
   const [broadcastMsg, setBroadcastMsg] = useState(null);
   const [lastBroadcastTime, setLastBroadcastTime] = useState(null);
 
@@ -111,6 +113,9 @@ export default function Play() {
 
         <div className="top-bar-controls">
           <LangSwitch />
+          <button className="icon-btn" onClick={() => setShowGlossary(true)} title={t("glossary.btn")}>
+            ❓ {t("glossary.btn")}
+          </button>
           <button className="icon-btn" onClick={() => setShowMap(true)} title={t("mapTitle")}>
             🗺️ {t("map")}
           </button>
@@ -123,6 +128,7 @@ export default function Play() {
 
       <StageComponent />
 
+      {showGlossary && <GlossaryModal onClose={() => setShowGlossary(false)} />}
       {showMap && <CaseProgressMapModal team={team} onClose={() => setShowMap(false)} />}
       {broadcastMsg && (
         <BroadcastModal message={broadcastMsg} onClose={() => setBroadcastMsg(null)} />

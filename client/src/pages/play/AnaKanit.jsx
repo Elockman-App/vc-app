@@ -5,7 +5,7 @@ import { getBolumMeta } from "../../data/bolumler";
 import { useLang } from "../../i18n";
 
 export default function AnaKanit() {
-  const { team, advance } = useGame();
+  const { team, advance, refreshTeam } = useGame();
   const { t, lang } = useLang();
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
@@ -17,7 +17,10 @@ export default function AnaKanit() {
     setErr(null);
     api
       .revealAnaKanit(harf, team.id, meta.num)
-      .then(setData)
+      .then((d) => {
+        setData(d);
+        if (refreshTeam) refreshTeam(); // Kod Defteri güncellensin
+      })
       .catch((e) => setErr(e.message || t("net.issue")));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [team.currentBolum, tick, lang]);

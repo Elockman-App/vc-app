@@ -4,12 +4,25 @@ const db = require("../db");
 const { STAGE_ORDER } = require("../utils/stages");
 const { requireAdmin } = require("../utils/adminAuth");
 const { newJoinCode } = require("../utils/joinCode");
+const { BOLUMLER } = require("../data/cases");
 
 const router = express.Router();
+
+// Takımın açtığı Ana Kanıt kodları ("Kod Defteri"): sadece görülmüş harflerin kodu döner
+function revealedCodes(teamId) {
+  const rows = db.prepare("SELECT harf FROM ana_kanit_progress WHERE team_id = ? ORDER BY harf ASC").all(teamId);
+  return rows
+    .map((r) => {
+      const b = BOLUMLER.find((x) => x.anaKanit.harf === r.harf);
+      return b ? { harf: r.harf, kod: b.anaKanit.kod } : null;
+    })
+    .filter(Boolean);
+}
 
 function serializeTeam(row) {
   if (!row) return null;
   return {
+    codes: revealedCodes(row.id),
     id: row.id,
     name: row.name,
     members: row.members,

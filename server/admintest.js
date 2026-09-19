@@ -322,6 +322,16 @@ async function waitUp() {
     await call("POST", "/admin/restore", { confirm: "GERI YUKLE", backup: bk }, token);
     assert.strictEqual((await call("GET", "/mini-vaka/1")).json.baslik, "DEĞİŞEN BAŞLIK", "geri yükleme düzenlemeyi getirmeli");
     await call("DELETE", "/admin/content/1/tr", null, token);
+    // Kod Defteri: açılan Ana Kanıt kodları takım kaydında görünür (başka telefondan katılınca da)
+    const cb0 = (await call("GET", `/teams/${jt.id}`)).json;
+    assert.deepStrictEqual(cb0.codes, [], "kanıt açılmadan kod görünmemeli");
+    await call("POST", "/ana-kanit/B/reveal", { teamId: jt.id, bolumNum: 2 });
+    const cb1 = (await call("GET", `/teams/${jt.id}`)).json;
+    assert.deepStrictEqual(cb1.codes, [{ harf: "B", kod: "295" }], "açılan kod defterde görünmeli");
+    const cbJoin = (await call("POST", "/teams/join", { name: "Kodlu Takım", code: jt.joinCode })).json;
+    assert.strictEqual(cbJoin.codes.length, 1);
+    // Özet metni oyuncuya gider (olay özeti ekranda gösteriliyor)
+    assert.ok((await call("GET", "/mini-vaka/1")).json.olayAni.ozet.length > 30);
     console.log("Takım kodu, skor tablosu, süre ayarı, rapor, tartışma ve vaka düzenleme çalışıyor. ✔");
 
     // 9) Kaba kuvvet sınırı

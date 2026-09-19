@@ -21,6 +21,14 @@ export default function Briefing() {
         <div style={{ fontWeight: 700, color: "#ff8080", marginBottom: 6 }}>{t("brief.noteTitle")}</div>
         <div className="muted" style={{ fontStyle: "italic" }}>{t("brief.noteBody")}</div>
       </div>
+      <div className="card-dark">
+        <div style={{ fontWeight: 700, color: "var(--gold)", marginBottom: 6 }}>{t("how.title")}</div>
+        {["how.1", "how.2", "how.3", "how.4"].map((k, i) => (
+          <p key={k} style={{ margin: "0 0 6px", lineHeight: 1.45 }}>
+            <b>{i + 1}.</b> {t(k)}
+          </p>
+        ))}
+      </div>
       {team?.joinCode && (
         <div className="card-dark" style={{ textAlign: "center" }}>
           <div className="muted" style={{ fontSize: "0.8rem", letterSpacing: 2 }}>{t("code.title")}</div>

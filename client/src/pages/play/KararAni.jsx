@@ -88,6 +88,9 @@ export default function KararAni() {
 
       {!reveal ? (
         <>
+          <div className="reveal-box" style={{ borderLeftColor: "var(--gold)", marginBottom: 8 }}>
+            <b>{t("dec.hintTitle")}</b> {t("dec.hint")}
+          </div>
           <textarea
             className="answer-input"
             placeholder={t("dec.placeholder")}

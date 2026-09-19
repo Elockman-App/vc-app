@@ -22,6 +22,13 @@ export default function OlayAni() {
           {t("miniCase", { n: miniVaka.sira, title: miniVaka.baslik })}
         </div>
 
+        <div className="card-dark" style={{ marginTop: "0.8rem", background: "rgba(0,0,0,0.55)" }}>
+          <div className="muted" style={{ fontSize: "0.75rem", letterSpacing: 2, marginBottom: 4 }}>
+            {t("event.summary")}
+          </div>
+          <div style={{ lineHeight: 1.5 }}>{miniVaka.olayAni.ozet}</div>
+        </div>
+
         <div style={{ flex: 1 }} />
 
         <SpeechBubble text={miniVaka.olayAni.balonlar[0]} align="left" />

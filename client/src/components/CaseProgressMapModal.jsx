@@ -52,6 +52,12 @@ export default function CaseProgressMapModal({ team, onClose }) {
               {t("code.title")}: <b style={{ color: "var(--gold)", letterSpacing: 3 }}>{team.joinCode}</b>
             </div>
           )}
+          <div className="muted" style={{ textAlign: "center", margin: "0 0 0.8rem", fontSize: "0.85rem" }}>
+            {t("codes.title")}:{" "}
+            <b style={{ color: "var(--gold)", letterSpacing: 2 }}>
+              {(team?.codes || []).length ? team.codes.map((c) => `${c.harf}: ${c.kod}`).join("  ·  ") : t("codes.empty")}
+            </b>
+          </div>
           <div className="map-grid">
             {VAKALAR.map((v) => {
               const isDone = currentSira > v.sira;
