@@ -8,29 +8,45 @@ export default function FinalParcaA() {
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [reveal, setReveal] = useState(null);
+  const [err, setErr] = useState(null);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    api.getSession().then((s) => {
-      if (!s.finalParcaAEnabled) {
-        advance(); // facilitator bu adımı kapattıysa otomatik atla
-      } else {
-        setEnabled(true);
-      }
-    });
+    setErr(null);
+    api
+      .getSession()
+      .then((s) => {
+        if (!s.finalParcaAEnabled) {
+          advance(); // facilitator bu adımı kapattıysa otomatik atla
+        } else {
+          setEnabled(true);
+        }
+      })
+      .catch((e) => setErr(e.message || "Bağlantı sorunu."));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [tick]);
 
   async function submit() {
     if (!text.trim()) return;
     setSubmitting(true);
+    setErr(null);
     try {
       const res = await api.submitParcaA(team.id, text);
       setReveal(res);
+    } catch (e) {
+      setErr(e.message || "Gönderilemedi, tekrar deneyin.");
     } finally {
       setSubmitting(false);
     }
   }
 
+  if (enabled === null && err)
+    return (
+      <div className="screen dark" style={{ padding: "1.4rem 1.1rem", justifyContent: "center", textAlign: "center" }}>
+        <p style={{ color: "#ff8080" }}>{err}</p>
+        <button className="btn" onClick={() => setTick((t) => t + 1)}>Tekrar Dene</button>
+      </div>
+    );
   if (enabled === null) return <p className="spinner-text">Yükleniyor...</p>;
 
   return (
@@ -49,12 +65,16 @@ export default function FinalParcaA() {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
+          {err && <p style={{ color: "#ff8080" }}>{err}</p>}
           <button className="btn" disabled={submitting} onClick={submit}>
             {submitting ? "Gönderiliyor..." : "Teşhisi Gönder"}
           </button>
         </>
       ) : (
         <>
+          {reveal.already && (
+            <p className="muted">Bu teşhis daha önce kaydedildi; ilk cevabınız geçerlidir.</p>
+          )}
           <div className="reveal-box">
             <b>Referans:</b> {reveal.dogruCozumReferansi}
           </div>

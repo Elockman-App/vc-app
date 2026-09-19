@@ -45,18 +45,20 @@ router.post("/:sira/answer", (req, res) => {
     .prepare("SELECT * FROM team_answers WHERE team_id = ? AND mini_vaka_sira = ?")
     .get(teamId, mv.sira);
 
+  // İlk gönderilen cevap kalıcıdır: referans çözümü gördükten sonra sayfayı
+  // yenileyip cevabı değiştirmek (kopyalamak) mümkün olmasın.
   if (existing) {
-    // Takım cevabını değiştirebilir (facilitator henüz puanlamadıysa) — üzerine yazılır.
-    db.prepare(
-      `UPDATE team_answers SET answer_text = ?, submitted_at = datetime('now')
-       WHERE team_id = ? AND mini_vaka_sira = ?`
-    ).run(answerText.trim().slice(0, 2000), teamId, mv.sira);
-  } else {
-    db.prepare(
-      `INSERT INTO team_answers (id, team_id, mini_vaka_sira, answer_text)
-       VALUES (?, ?, ?, ?)`
-    ).run(nanoid(10), teamId, mv.sira, answerText.trim().slice(0, 2000));
+    return res.json({
+      saved: true,
+      already: true,
+      dogruCozum: mv.dogruCozum,
+      finalIcgorusu: mv.finalIcgorusu
+    });
   }
+  db.prepare(
+    `INSERT INTO team_answers (id, team_id, mini_vaka_sira, answer_text)
+     VALUES (?, ?, ?, ?)`
+  ).run(nanoid(10), teamId, mv.sira, answerText.trim().slice(0, 2000));
 
   // Takıma anında "referans çözüm" gösterilir (kendi kendine değerlendirme için);
   // gerçek puanı facilitator admin panelinden ayrıca girer.

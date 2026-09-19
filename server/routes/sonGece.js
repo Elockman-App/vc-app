@@ -24,8 +24,14 @@ router.post("/sentez", (req, res) => {
   const team = db.prepare("SELECT * FROM teams WHERE id = ?").get(teamId);
   if (!team) return res.status(404).json({ error: "Takım bulunamadı." });
 
-  const cevaplar = [Number(satir1), Number(satir2), Number(satir3)];
   const dogrular = FINAL.sonGece.ucYolSinavi.map((r) => r.dogruMiniVakaSira);
+
+  // İlk gönderim kalıcıdır: doğru cevapları gördükten sonra tekrar denenemez.
+  const existing = db.prepare("SELECT * FROM son_gece_answers WHERE team_id = ?").get(teamId);
+  const already = !!existing;
+  const cevaplar = existing
+    ? [existing.satir1_mini_vaka, existing.satir2_mini_vaka, existing.satir3_mini_vaka].map(Number)
+    : [Number(satir1), Number(satir2), Number(satir3)];
 
   let score = 0;
   const detay = FINAL.sonGece.ucYolSinavi.map((r, i) => {
@@ -40,13 +46,7 @@ router.post("/sentez", (req, res) => {
     };
   });
 
-  const existing = db.prepare("SELECT * FROM son_gece_answers WHERE team_id = ?").get(teamId);
-  if (existing) {
-    db.prepare(
-      `UPDATE son_gece_answers SET satir1_mini_vaka=?, satir2_mini_vaka=?, satir3_mini_vaka=?,
-       score=?, submitted_at=datetime('now') WHERE team_id=?`
-    ).run(cevaplar[0], cevaplar[1], cevaplar[2], score, teamId);
-  } else {
+  if (!existing) {
     db.prepare(
       `INSERT INTO son_gece_answers (team_id, satir1_mini_vaka, satir2_mini_vaka, satir3_mini_vaka, score, submitted_at)
        VALUES (?, ?, ?, ?, ?, datetime('now'))`
@@ -54,7 +54,7 @@ router.post("/sentez", (req, res) => {
   }
 
   const totalScore = recomputeTotalScore(teamId);
-  res.json({ score, maxScore: 120, detay, totalScore });
+  res.json({ score, maxScore: 120, detay, totalScore, already });
 });
 
 module.exports = router;

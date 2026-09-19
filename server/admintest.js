@@ -234,6 +234,25 @@ async function waitUp() {
     assert.strictEqual(expJson.tables.teams.length, 1);
     console.log("Yedek indirme ve geri yükleme (kimlikler ve puanlar korunarak) çalışıyor. ✔");
 
+    // 8b) İlk cevap kalıcıdır (yenileyip değiştirme yok)
+    const lt = (await call("POST", "/teams", { name: "Kilit Takımı" })).json;
+    const a1 = await call("POST", "/mini-vaka/1/answer", { teamId: lt.id, answerText: "ilk cevap" });
+    assert.ok(a1.json.dogruCozum && !a1.json.already, "ilk cevap kaydedilmeli");
+    const a2 = await call("POST", "/mini-vaka/1/answer", { teamId: lt.id, answerText: "ikinci cevap" });
+    assert.ok(a2.json.already, "ikinci gönderim 'already' dönmeli");
+    const ansQ = await call("GET", "/admin/queue", null, token);
+    const saved = ansQ.text;
+    assert.ok(saved.includes("ilk cevap") && !saved.includes("ikinci cevap"), "cevap değişmemeli");
+    const p1 = await call("POST", "/final/parca-a", { teamId: lt.id, text: "birinci teşhis" });
+    const p2 = await call("POST", "/final/parca-a", { teamId: lt.id, text: "ikinci teşhis" });
+    assert.ok(!p1.json.already && p2.json.already, "parça A kilitlenmeli");
+    const doğru = require("./data/cases").FINAL.sonGece.ucYolSinavi.map((r) => r.dogruMiniVakaSira);
+    const s1 = await call("POST", "/son-gece/sentez", { teamId: lt.id, satir1: 99, satir2: 99, satir3: 99 });
+    const s2 = await call("POST", "/son-gece/sentez", { teamId: lt.id, satir1: doğru[0], satir2: doğru[1], satir3: doğru[2] });
+    assert.strictEqual(s1.json.score, 0);
+    assert.ok(s2.json.already && s2.json.score === 0, "Son Gece tekrar denenememeli");
+    console.log("İlk cevap kilidi (mini vaka, parça A, son gece) çalışıyor. ✔");
+
     // 9) Kaba kuvvet sınırı
     let locked = false;
     for (let i = 0; i < 8; i++) {

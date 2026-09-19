@@ -45,6 +45,11 @@ router.post("/parca-a", (req, res) => {
   }
 
   ensureRow(teamId);
+  const prev = db.prepare("SELECT parca_a_text FROM final_progress WHERE team_id = ?").get(teamId);
+  if (prev && prev.parca_a_text) {
+    // İlk gönderim kalıcıdır (referansı gördükten sonra değiştirilemez)
+    return res.json({ saved: true, already: true, dogruCozumReferansi: FINAL.parcaA.dogruCozumReferansi });
+  }
   db.prepare(
     `UPDATE final_progress SET parca_a_text = ?, parca_a_submitted_at = datetime('now')
      WHERE team_id = ?`

@@ -9,23 +9,40 @@ export default function SonGeceSentez() {
   const [secim, setSecim] = useState({ 0: "", 1: "", 2: "" });
   const [sonuc, setSonuc] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    api.getSonGece().then((d) => setSinav(d.ucYolSinavi));
-    api.listMiniVaka().then(setVakalar);
-  }, []);
+    setErr(null);
+    Promise.all([api.getSonGece(), api.listMiniVaka()])
+      .then(([d, v]) => {
+        setSinav(d.ucYolSinavi);
+        setVakalar(v);
+      })
+      .catch((e) => setErr(e.message || "Bağlantı sorunu."));
+  }, [tick]);
 
   async function gonder() {
     if (!secim[0] || !secim[1] || !secim[2]) return;
     setBusy(true);
+    setErr(null);
     try {
       const res = await api.submitSonGeceSentez(team.id, secim[0], secim[1], secim[2]);
       setSonuc(res);
+    } catch (e) {
+      setErr(e.message || "Gönderilemedi, tekrar deneyin.");
     } finally {
       setBusy(false);
     }
   }
 
+  if ((!sinav || vakalar.length === 0) && err)
+    return (
+      <div className="screen dark" style={{ padding: "1.4rem 1.1rem", justifyContent: "center", textAlign: "center" }}>
+        <p style={{ color: "#ff8080" }}>{err}</p>
+        <button className="btn" onClick={() => setTick((t) => t + 1)}>Tekrar Dene</button>
+      </div>
+    );
   if (!sinav || vakalar.length === 0) return <p className="spinner-text">Yükleniyor...</p>;
 
   return (
@@ -63,11 +80,17 @@ export default function SonGeceSentez() {
       ))}
 
       {!sonuc ? (
+        <>
+        {err && <p style={{ color: "#ff8080", textAlign: "center" }}>{err}</p>}
         <button className="btn" disabled={busy} onClick={gonder}>
           {busy ? "Gönderiliyor..." : "Cevapları Gönder"}
         </button>
+        </>
       ) : (
         <>
+          {sonuc.already && (
+            <p className="muted" style={{ textAlign: "center" }}>İlk gönderiminiz geçerlidir.</p>
+          )}
           <p style={{ textAlign: "center", fontWeight: 700, marginTop: "1rem" }}>
             Puanınız: {sonuc.score} / {sonuc.maxScore}
           </p>

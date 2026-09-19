@@ -85,6 +85,9 @@ export default function KararAni() {
         </>
       ) : (
         <>
+          {reveal.already && (
+            <p className="muted">Bu vaka için cevabınız daha önce kaydedildi; ilk cevabınız geçerlidir.</p>
+          )}
           <div className="reveal-box">
             <b>Referans Çözüm:</b> {reveal.dogruCozum}
           </div>
