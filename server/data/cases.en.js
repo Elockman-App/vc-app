@@ -40,7 +40,7 @@ const VAKA_EN = [
     kanitAni: [
       { type: "whatsapp", baslik: "Site Message Group", from: "Operator and Shift Supervisor", time: "11:15", text: "Operator: There's an oil leak over there, be careful, the floor is slippery.\nShift Supervisor: I saw it. Let's not open a report, it'll be wiped up at the end of the day.\nOperator: But what if someone slips and falls?" },
       { type: "data", baslik: "Hazard Reporting System", rows: [["Reports entered today", "0"]] },
-      { type: "quote", baslik: "Witness Statement", who: "Visiting Contractor Engineer", text: "I almost fell. There wasn't even a warning sign." }
+      { type: "quote", baslik: "Witness Statement", who: "Visiting Contractor Engineer", text: "Internal Audit: Was there a warning sign there?\nVisiting Contractor Engineer: I almost fell. There wasn't even a warning sign." }
     ],
     kararSorusu: "This could have turned into an accident (this is called a \"near miss\"). At what moment, and by doing what, would the problem have been prevented from the start?",
     dogruCozum: "The operator saw the hazard and told the people around him; but because it looked \"small\", he did not enter it into the official system. No matter how small a hazard is, it should be recorded in the official system immediately. That way everyone would know and the leak would be fixed.",
@@ -56,7 +56,7 @@ const VAKA_EN = [
     kanitAni: [
       { type: "whatsapp", baslik: "Personal Line", from: "The Manager and his nephew (supplier owner)", time: "22:10", text: "Maintenance Manager: Were you able to find a solution for the crusher motor, nephew?\nNephew (supplier): I found it, uncle, I'll bring it tomorrow morning. I'm also coming to the Saturday dinner, mom asked about you 😄\nMaintenance Manager: How nice, give your mom a kiss from me." },
       { type: "data", baslik: "SAP Supplier Record", rows: [["Family / ownership relationship declared", "NO"], ["Registration date", "Same day as the first order"]] },
-      { type: "quote", baslik: "Witness Statement", who: "Maintenance Manager", text: "Nobody asked, and I didn't say anything." }
+      { type: "quote", baslik: "Witness Statement", who: "Maintenance Manager", text: "Internal Audit: Why didn't you tell anyone anything about the supplier company?\nMaintenance Manager: Nobody asked, and I didn't say anything." }
     ],
     kararSorusu: "Which single step in this process would have made everything transparent from the very start?",
     dogruCozum: "The family relationship should have been declared right at the start, on the supplier registration form. Even if the part was good and cheap, an undeclared conflict of interest is not acceptable.",
@@ -72,7 +72,7 @@ const VAKA_EN = [
     kanitAni: [
       { type: "whatsapp", baslik: "Shift Group", from: "Shift Group (New Operator and Night Operator)", time: "07:08", text: "New Operator: The cover on that belt is missing, I saw it. What happened?\nNight Operator: It went for repair, we're used to this kind of thing.\nNew Operator: So nobody wrote it down?" },
       { type: "data", baslik: "Shift Handover Form (4 Days)", rows: [["\"Open Risks\" section", "[ EMPTY ]"]] },
-      { type: "quote", baslik: "Witness Statement", who: "New Operator", text: "Nobody told me. I thought, \"maybe it's normal, and asking would look silly\"." }
+      { type: "quote", baslik: "Witness Statement", who: "New Operator", text: "Internal Audit: Why didn't you ask about the missing cover?\nNew Operator: Nobody told me. I thought, \"maybe it's normal, and asking would look silly\"." }
     ],
     kararSorusu: "Exactly which link in the information chain broke?",
     dogruCozum: "The information got lost after passing verbally through 3-4 people. The \"Open Risks\" section of the shift handover form should have been filled in, so that everyone new would see the situation in writing.",

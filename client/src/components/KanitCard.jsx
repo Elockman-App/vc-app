@@ -60,8 +60,14 @@ export default function KanitCard({ kanit, onInspect }) {
     return (
       <div className="kanit-card quote">
         <div className="quote-title">{kanit.baslik}</div>
-        <div className="quote-text">“{kanit.text}”</div>
-        <div className="quote-who">— {kanit.who}</div>
+        {String(kanit.text || "").includes("\n") ? (
+          <ChatText text={kanit.text} />
+        ) : (
+          <>
+            <div className="quote-text">“{kanit.text}”</div>
+            <div className="quote-who">— {kanit.who}</div>
+          </>
+        )}
         {onInspect && (
           <button
             className="inspect-btn"

@@ -57,7 +57,7 @@ const MINI_VAKALAR = [
     kanitAni: [
       { type: "whatsapp", baslik: "Saha Mesaj Grubu", from: "Operatör ve Vardiya Amiri", time: "11:15", text: "Operatör: Şurada yağ sızıntısı var, dikkat edin, zemin kayıyor.\nVardiya Amiri: Gördüm. Bildirim açmayalım, gün sonunda silinir.\nOperatör: Ama biri kayıp düşerse?" },
       { type: "data", baslik: "Tehlike Bildirim Sistemi", rows: [["Bugün sisteme girilen bildirim", "0"]] },
-      { type: "quote", baslik: "Tanık İfadesi", who: "Ziyaretçi Yüklenici Mühendisi", text: "Az kalsın düşüyordum. Ortada bir uyarı levhası bile yoktu." }
+      { type: "quote", baslik: "Tanık İfadesi", who: "Ziyaretçi Yüklenici Mühendisi", text: "İç Denetim: Orada bir uyarı levhası var mıydı?\nZiyaretçi Yüklenici Mühendisi: Az kalsın düşüyordum. Ortada bir uyarı levhası bile yoktu." }
     ],
     kararSorusu: "Bu olay bir kazaya dönüşebilirdi (buna \"ramak kala\" denir). Sizce hangi anda ne yapılsaydı sorun baştan önlenirdi?",
     dogruCozum: "Operatör tehlikeyi gördü ve yanındakilere söyledi; ama \"küçük bir şey\" diye resmi sisteme girmedi. Tehlike ne kadar küçük olursa olsun, hemen resmi sisteme kaydedilmeliydi. Böylece herkes haberdar olur ve sızıntı giderilirdi.",
@@ -76,7 +76,7 @@ const MINI_VAKALAR = [
     kanitAni: [
       { type: "whatsapp", baslik: "Kişisel Hat", from: "Müdür ve yeğeni (tedarikçi sahibi)", time: "22:10", text: "Bakım Müdürü: Kırıcı motoru için bir çözüm bulabildin mi yeğenim?\nYeğeni (tedarikçi): Buldum dayı, yarın sabah getiriyorum. Cumartesi yemeğe de geliyorum, annem seni sordu 😄\nBakım Müdürü: Ne güzel, anneni de öp benden." },
       { type: "data", baslik: "SAP Tedarikçi Kaydı", rows: [["Akrabalık / ortaklık bildirimi", "HAYIR"], ["Kayıt tarihi", "İlk siparişle aynı gün"]] },
-      { type: "quote", baslik: "Tanık İfadesi", who: "Bakım Müdürü", text: "Kimse sormadı, ben de söylemedim." }
+      { type: "quote", baslik: "Tanık İfadesi", who: "Bakım Müdürü", text: "İç Denetim: Tedarikçi firmayla ilgili neden kimseye bir şey söylemediniz?\nBakım Müdürü: Kimse sormadı, ben de söylemedim." }
     ],
     kararSorusu: "Bu süreçte hangi tek adım, her şeyi en başından şeffaf hale getirirdi?",
     dogruCozum: "Akrabalık, tedarikçinin kayıt formunda en baştan bildirilmeliydi. Parça iyi ve ucuz olsa bile, bildirilmeyen bir çıkar ilişkisi doğru sayılmaz.",
@@ -95,7 +95,7 @@ const MINI_VAKALAR = [
     kanitAni: [
       { type: "whatsapp", baslik: "Vardiya Grubu", from: "Vardiya Grubu (Yeni Operatör ve Gece Operatörü)", time: "07:08", text: "Yeni Operatör: Şu bandın kapağı yok, gördüm. Ne oldu?\nGece Operatörü: Tamire gitti, biz böyle şeylere alışığız.\nYeni Operatör: Peki bunu kimse yazmadı mı?" },
       { type: "data", baslik: "Vardiya Teslim Formu (4 Gün)", rows: [["\"Açık Riskler\" bölümü", "[ BOŞ ]"]] },
-      { type: "quote", baslik: "Tanık İfadesi", who: "Yeni Operatör", text: "Kimse bana söylemedi. \"Belki normaldir, sormak aptalca görünür\" diye düşündüm." }
+      { type: "quote", baslik: "Tanık İfadesi", who: "Yeni Operatör", text: "İç Denetim: Kapağın olmadığını neden sormadınız?\nYeni Operatör: Kimse bana söylemedi. \"Belki normaldir, sormak aptalca görünür\" diye düşündüm." }
     ],
     kararSorusu: "Bilgi zincirinde tam olarak hangi halka koptu?",
     dogruCozum: "Bilgi sözlü olarak 3-4 kişiden geçince kayboldu. Vardiya teslim formundaki \"Açık Riskler\" bölümü doldurulmalıydı; böylece yeni gelen herkes durumu yazılı olarak görürdü.",

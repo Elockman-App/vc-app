@@ -52,8 +52,14 @@ export default function EvidenceInspectorModal({ kanit, onClose }) {
           ) : kanit.type === "quote" ? (
             <div className="kanit-card quote zoomed">
               <div className="quote-title">🗣️ {kanit.baslik}</div>
-              <div className="quote-text">"{kanit.text}"</div>
-              {kanit.who && <div className="quote-who">— {kanit.who}</div>}
+              {String(kanit.text || "").includes("\n") ? (
+                <ChatText text={kanit.text} />
+              ) : (
+                <>
+                  <div className="quote-text">"{kanit.text}"</div>
+                  {kanit.who && <div className="quote-who">— {kanit.who}</div>}
+                </>
+              )}
             </div>
           ) : (
             <div className="card-dark">
