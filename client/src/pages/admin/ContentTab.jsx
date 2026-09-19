@@ -201,7 +201,7 @@ export default function ContentTab({ onChanged }) {
                 <>
                   <Field label="Gönderen" value={k.from} onChange={(v) => setKanit(i, "from", v)} />
                   <Field label="Saat / zaman" value={k.time} onChange={(v) => setKanit(i, "time", v)} />
-                  <Field label="Mesaj" value={k.text} onChange={(v) => setKanit(i, "text", v)} multiline />
+                  <Field label="Mesaj (karşılıklı yazışma için her satıra: Ad: mesaj)" value={k.text} onChange={(v) => setKanit(i, "text", v)} multiline />
                 </>
               )}
               {k.type === "quote" && (

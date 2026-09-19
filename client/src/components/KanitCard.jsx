@@ -1,6 +1,7 @@
 import React from "react";
 
 import { useLang } from "../i18n";
+import ChatText from "./ChatText";
 
 export default function KanitCard({ kanit, onInspect }) {
   const { t } = useLang();
@@ -13,7 +14,7 @@ export default function KanitCard({ kanit, onInspect }) {
           <div className="chat-meta">
             {kanit.from} · {kanit.time}
           </div>
-          <div className="chat-text">{kanit.text}</div>
+          <ChatText text={kanit.text} />
           {onInspect && (
             <button
               className="inspect-btn"

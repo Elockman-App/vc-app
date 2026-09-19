@@ -623,3 +623,8 @@ table.admin-table td { padding: 0.6em; border-bottom: 1px solid #f0f0f0; vertica
 }
 
 .bubble-speaker { font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gold, #d4a017); margin-bottom: 4px; }
+
+.chat-thread { display: flex; flex-direction: column; gap: 0.5rem; }
+.chat-line { font-size: 0.95rem; font-weight: 600; line-height: 1.35; }
+.chat-who { display: block; font-size: 0.72rem; color: #128c3e; }
+.kanit-card.chat.teams .chat-who { color: #464775; }

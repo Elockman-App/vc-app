@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import ChatText from "./ChatText";
 import { soundEngine } from "../utils/soundEngine";
 import { useLang } from "../i18n";
 
@@ -35,7 +36,7 @@ export default function EvidenceInspectorModal({ kanit, onClose }) {
                 <div className="chat-meta">
                   {kanit.from} {kanit.time && `• ${kanit.time}`}
                 </div>
-                <div className="chat-text">{kanit.text}</div>
+                <ChatText text={kanit.text} />
               </div>
             </div>
           ) : kanit.type === "data" ? (

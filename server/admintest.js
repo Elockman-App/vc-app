@@ -311,6 +311,7 @@ async function waitUp() {
     assert.strictEqual(put.json.edited, true);
     assert.strictEqual((await call("GET", "/mini-vaka/1")).json.baslik, "DEĞİŞEN BAŞLIK", "düzenleme oyuncuya yansımalı");
     assert.strictEqual((await call("GET", "/mini-vaka/1?lang=en")).json.baslik, "THE SLIPPERY MOMENT", "diğer dil etkilenmemeli");
+    assert.ok((await call("GET", "/mini-vaka/1")).json.kanitAni[0].text.includes("\n"), "kanıt yazışması çok satırlı olmalı");
     assert.deepStrictEqual((await call("GET", "/mini-vaka/1")).json.olayAni.konusanlar, ["Operatör", "Vardiya Amiri"], "konuşan rolleri oyuncuya gitmeli ve panelden kaybolmamalı");
     assert.deepStrictEqual((await call("GET", "/mini-vaka/1?lang=en")).json.olayAni.konusanlar, ["Operator", "Shift Supervisor"]);
     assert.ok(!("dogruCozum" in (await call("GET", "/mini-vaka/1")).json), "düzenlenmiş vakada da cevap sızmamalı");

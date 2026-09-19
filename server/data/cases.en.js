@@ -38,7 +38,7 @@ const VAKA_EN = [
       balonlar: ["There's oil spilled over there, the floor is slippery. Should I file a report?", "Forget it, they'll wipe it up by the end of the day. Don't bother with the paperwork."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Site Message Group", from: "Operator", time: "11:15", text: "There's an oil leak over there, be careful, the floor is slippery." },
+      { type: "whatsapp", baslik: "Site Message Group", from: "Operator and Shift Supervisor", time: "11:15", text: "Operator: There's an oil leak over there, be careful, the floor is slippery.\nShift Supervisor: I saw it. Let's not open a report, it'll be wiped up at the end of the day.\nOperator: But what if someone slips and falls?" },
       { type: "data", baslik: "Hazard Reporting System", rows: [["Reports entered today", "0"]] },
       { type: "quote", baslik: "Witness Statement", who: "Visiting Contractor Engineer", text: "I almost fell. There wasn't even a warning sign." }
     ],
@@ -54,7 +54,7 @@ const VAKA_EN = [
       balonlar: ["Sir, I haven't seen this company in the system before. Shall we fill in the registration form?", "No need, my nephew founded this company. I trust him."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Personal Line", from: "Supplier Owner (the Manager's nephew)", time: "22:10", text: "Uncle, I found the crusher motor you were looking for, I'll bring it tomorrow morning. I'm also coming to the Saturday dinner, mom asked about you 😄" },
+      { type: "whatsapp", baslik: "Personal Line", from: "The Manager and his nephew (supplier owner)", time: "22:10", text: "Maintenance Manager: Were you able to find a solution for the crusher motor, nephew?\nNephew (supplier): I found it, uncle, I'll bring it tomorrow morning. I'm also coming to the Saturday dinner, mom asked about you 😄\nMaintenance Manager: How nice, give your mom a kiss from me." },
       { type: "data", baslik: "SAP Supplier Record", rows: [["Family / ownership relationship declared", "NO"], ["Registration date", "Same day as the first order"]] },
       { type: "quote", baslik: "Witness Statement", who: "Maintenance Manager", text: "Nobody asked, and I didn't say anything." }
     ],
@@ -70,7 +70,7 @@ const VAKA_EN = [
       balonlar: ["Where is this conveyor's guard cover? Nobody told me anything.", "It's been gone for a while, we're used to it. Just be careful."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Shift Group", from: "Night Operator", time: "07:08", text: "The cover is missing, I saw it. What happened? → \"It went for repair, we're used to this kind of thing.\"" },
+      { type: "whatsapp", baslik: "Shift Group", from: "Shift Group (New Operator and Night Operator)", time: "07:08", text: "New Operator: The cover on that belt is missing, I saw it. What happened?\nNight Operator: It went for repair, we're used to this kind of thing.\nNew Operator: So nobody wrote it down?" },
       { type: "data", baslik: "Shift Handover Form (4 Days)", rows: [["\"Open Risks\" section", "[ EMPTY ]"]] },
       { type: "quote", baslik: "Witness Statement", who: "New Operator", text: "Nobody told me. I thought, \"maybe it's normal, and asking would look silly\"." }
     ],
@@ -87,7 +87,7 @@ const VAKA_EN = [
       balonlar: ["My shift is over but the customer is still waiting. How will this delivery be recorded?", "You go, I'll fix the record. Let's get by just this once."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Dispatch Team", from: "Site Supervisor", time: "20:52", text: "Just this once, bear with it, I'll fix the timesheet." },
+      { type: "whatsapp", baslik: "Dispatch Team", from: "Site Supervisor and Driver", time: "20:52", text: "Site Supervisor: Just this once, bear with it, I'll fix the timesheet.\nDriver: My shift ended at 20:00, won't the record show that?\nSite Supervisor: Don't worry, I'll handle it." },
       { type: "data", baslik: "SAP Entry-Exit (Turnstile) Record", rows: [["Actual exit time", "23:52"], ["Recorded in the system", "19:00 (manually changed at 23:58)"]] },
       { type: "data", baslik: "Performance Indicator — Shift Overruns", rows: [["Trend over the last 3 weeks", "Steadily rising"]] }
     ],
@@ -103,7 +103,7 @@ const VAKA_EN = [
       balonlar: ["A failure report was opened for this pump again. How many times is this now?", "The amount is always under 50 thousand, one signature is enough. No need to make it a big deal."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Maintenance Planning", from: "Planning Engineer", time: "—", text: "I don't want to go through the big investment process, let's just get by for now." },
+      { type: "whatsapp", baslik: "Maintenance Planning", from: "Planning Engineer and Purchasing Specialist", time: "—", text: "Purchasing Specialist: Should we open a new investment request for this pump?\nPlanning Engineer: I don't want to go through the big investment process, let's just get by for now." },
       { type: "data", baslik: "SAP Purchasing History", rows: [["9 orders", "All between 42-48 thousand TL"], ["Approval type", "All with a single signature"]] },
       { type: "teams", baslik: "Process Improvement (Archive)", from: "Financial Planning and Control Officer", time: "—", text: "Should we add an alert for repeated spending? → \"Noted, we'll look at it later.\" (never done)" }
     ],
@@ -119,7 +119,7 @@ const VAKA_EN = [
       balonlar: ["The quality figures have been getting worse for 9 weeks. Should we take it to the meeting?", "The agenda is full this week. Let's leave it for now and look at it later."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Quality–Production Coordination", from: "Process Engineer", time: "—", text: "It's hard to get approval without a formal request... Shall we talk about it in the meeting?" },
+      { type: "whatsapp", baslik: "Quality–Production Coordination", from: "Process Engineer and Quality Development Chief", time: "—", text: "Process Engineer: It's hard to get approval without a formal request... Shall we talk about it in the meeting?\nQuality Development Chief: The agenda is full this week, let's leave it for now." },
       { type: "data", baslik: "Meeting Note", rows: [["Decision", "Could not be discussed for lack of time, postponed."]] },
       { type: "data", baslik: "SAP Quality Trend", rows: [["Trend over the last 9 weeks", "Rose without stopping"], ["Automatic alert", "None"]] }
     ],
@@ -137,7 +137,7 @@ const VAKA_EN = [
     },
     kanitAni: [
       { type: "teams", baslik: "Early Announcement", from: "Organizational Development Manager", time: "Week 2", text: "The first 2 weeks went great! I'll share it with regional management tomorrow too 🎉" },
-      { type: "whatsapp", baslik: "Project Team", from: "Project Engineer", time: "Week 5", text: "Saying there's a problem would look very bad... The most likely cause is this operator, it's hard to explain otherwise." },
+      { type: "whatsapp", baslik: "Project Team", from: "Project Team (Project Engineer and Teammate)", time: "Week 5", text: "Teammate: What could be causing the problem on the site?\nProject Engineer: Saying there's a problem would look very bad... The most likely cause is this operator, it's hard to explain otherwise." },
       { type: "data", baslik: "SAP Compliance Comparison", rows: [["Blamed operator's compliance", "Even higher than the shift that was not blamed"]] }
     ],
     kararSorusu: "At which moment, if someone had honestly said \"this isn't going well\", would everything have changed?",
@@ -152,9 +152,9 @@ const VAKA_EN = [
       balonlar: ["The line stopped a few times again this week. Should we log it?", "They're all under 15 minutes, that doesn't count as a breakdown. It starts right back up anyway."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Maintenance Tracking", from: "Machine Maintenance Foreman", time: "—", text: "I said it for months, it felt like talking to a wall." },
+      { type: "whatsapp", baslik: "Maintenance Tracking", from: "Maintenance Tracking (Foreman and Production Supervisor)", time: "—", text: "Production Supervisor: The belt stopped again, what's going on?\nMaintenance Foreman: I said it for months, it felt like talking to a wall." },
       { type: "data", baslik: "Maintenance Record and Dispatch Record", rows: [["The same 4 dates", "Both small stops and delivery delays at their highest"]] },
-      { type: "data", baslik: "Performance Dashboard", rows: [["Machine efficiency (OEE)", "89% (Green)"], ["On-time delivery to dealers (separate dashboard)", "78% (Red)"]] }
+      { type: "data", baslik: "Performance Dashboard", rows: [["Machine efficiency dashboard (OEE: how efficiently the machine runs)", "89% → Green (looks good)"], ["On-time delivery to dealers dashboard (separate report)", "78% → Red (bad)"], ["Result", "The two dashboards sit in separate reports, nobody put them side by side"]] }
     ],
     kararSorusu: "Which two reports, if placed side by side, would have revealed the problem months ago?",
     dogruCozum: "The problem was not in a person but in the way of measuring: stops shorter than 15 minutes were never counted. If the maintenance records and the delivery delays had been put side by side, the link would have been seen.",
@@ -169,7 +169,7 @@ const VAKA_EN = [
     },
     kanitAni: [
       { type: "teams", baslik: "Investment Proposals (Archive)", from: "Environmental Engineer", time: "For 2 years", text: "The dust-prevention investment was proposed but postponed 2 years in a row on the grounds of \"no legal obligation\"." },
-      { type: "data", baslik: "Complaint Record", rows: [["Complaints over 3 years", "7 → 11 → 14 (+ 1 formal petition)"]] },
+      { type: "data", baslik: "Complaint Record", rows: [["Dust complaints from neighbors (by year)", "Year 1: 7 → Year 2: 11 → Year 3: 14"], ["Formal (written) petition", "1"], ["Result", "Complaints rise every year, the problem is not going away by itself"]] },
       { type: "data", baslik: "Measurement Note", rows: [["Measurement days over 3 years", "Always taken on windless days"]] }
     ],
     kararSorusu: "The company broke no law. Does that justify the 2-year delay?",

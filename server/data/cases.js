@@ -55,7 +55,7 @@ const MINI_VAKALAR = [
       balonlar: ["Şurada yağ dökülmüş, zemin kayıyor. Bildirim açsam mı?", "Boş ver, gün sonunda silerler. Bir de kâğıt işiyle uğraşma."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Saha Mesaj Grubu", from: "Operatör", time: "11:15", text: "Şurada yağ sızıntısı var, dikkat edin, zemin kayıyor." },
+      { type: "whatsapp", baslik: "Saha Mesaj Grubu", from: "Operatör ve Vardiya Amiri", time: "11:15", text: "Operatör: Şurada yağ sızıntısı var, dikkat edin, zemin kayıyor.\nVardiya Amiri: Gördüm. Bildirim açmayalım, gün sonunda silinir.\nOperatör: Ama biri kayıp düşerse?" },
       { type: "data", baslik: "Tehlike Bildirim Sistemi", rows: [["Bugün sisteme girilen bildirim", "0"]] },
       { type: "quote", baslik: "Tanık İfadesi", who: "Ziyaretçi Yüklenici Mühendisi", text: "Az kalsın düşüyordum. Ortada bir uyarı levhası bile yoktu." }
     ],
@@ -74,7 +74,7 @@ const MINI_VAKALAR = [
       balonlar: ["Müdürüm, bu firmayı sistemde daha önce görmedim. Kayıt formunu dolduralım mı?", "Gerek yok, yeğenim kurdu bu firmayı. Ben ona güveniyorum."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Kişisel Hat", from: "Tedarikçi Sahibi (Müdürün yeğeni)", time: "22:10", text: "Dayı, aradığın kırıcı motoru buldum, yarın sabah getiriyorum. Cumartesi yemeğe de geliyorum, annem seni sordu 😄" },
+      { type: "whatsapp", baslik: "Kişisel Hat", from: "Müdür ve yeğeni (tedarikçi sahibi)", time: "22:10", text: "Bakım Müdürü: Kırıcı motoru için bir çözüm bulabildin mi yeğenim?\nYeğeni (tedarikçi): Buldum dayı, yarın sabah getiriyorum. Cumartesi yemeğe de geliyorum, annem seni sordu 😄\nBakım Müdürü: Ne güzel, anneni de öp benden." },
       { type: "data", baslik: "SAP Tedarikçi Kaydı", rows: [["Akrabalık / ortaklık bildirimi", "HAYIR"], ["Kayıt tarihi", "İlk siparişle aynı gün"]] },
       { type: "quote", baslik: "Tanık İfadesi", who: "Bakım Müdürü", text: "Kimse sormadı, ben de söylemedim." }
     ],
@@ -93,7 +93,7 @@ const MINI_VAKALAR = [
       balonlar: ["Bu bandın koruyucu kapağı nerede? Kimse bana bir şey söylemedi.", "Bir süredir yok, biz alıştık. Sen sadece dikkat et."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Vardiya Grubu", from: "Gece Operatörü", time: "07:08", text: "Kapak yok, gördüm. Ne oldu? → \"Tamire gitti, biz böyle şeylere alışığız.\"" },
+      { type: "whatsapp", baslik: "Vardiya Grubu", from: "Vardiya Grubu (Yeni Operatör ve Gece Operatörü)", time: "07:08", text: "Yeni Operatör: Şu bandın kapağı yok, gördüm. Ne oldu?\nGece Operatörü: Tamire gitti, biz böyle şeylere alışığız.\nYeni Operatör: Peki bunu kimse yazmadı mı?" },
       { type: "data", baslik: "Vardiya Teslim Formu (4 Gün)", rows: [["\"Açık Riskler\" bölümü", "[ BOŞ ]"]] },
       { type: "quote", baslik: "Tanık İfadesi", who: "Yeni Operatör", text: "Kimse bana söylemedi. \"Belki normaldir, sormak aptalca görünür\" diye düşündüm." }
     ],
@@ -113,7 +113,7 @@ const MINI_VAKALAR = [
       balonlar: ["Mesaim bitti ama müşteri hâlâ bekliyor. Bu sevkiyat kayda nasıl geçecek?", "Sen git, kaydı ben düzeltirim. Bu seferlik idare edelim."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Sevkiyat Ekibi", from: "Saha Sorumlusu", time: "20:52", text: "Bu seferlik idare et, mesai kaydını ben düzeltirim." },
+      { type: "whatsapp", baslik: "Sevkiyat Ekibi", from: "Saha Sorumlusu ve Sürücü", time: "20:52", text: "Saha Sorumlusu: Bu seferlik idare et, mesai kaydını ben düzeltirim.\nSürücü: Mesaim 20:00'de bitti, kayıtta öyle görünmeyecek mi?\nSaha Sorumlusu: Merak etme, ben hallederim." },
       { type: "data", baslik: "SAP Giriş-Çıkış (Turnike) Kaydı", rows: [["Gerçek çıkış saati", "23:52"], ["Sistemdeki kayıt", "19:00 (23:58'de elle değiştirilmiş)"]] },
       { type: "data", baslik: "Performans Göstergesi — Vardiya Aşımı", rows: [["Son 3 haftanın seyri", "Sürekli artıyor"]] }
     ],
@@ -132,7 +132,7 @@ const MINI_VAKALAR = [
       balonlar: ["Bu pompa için yine arıza kaydı açılmış. Bu kaçıncı oldu?", "Tutar hep 50 bin altında, tek imza yeter. Büyütmeye gerek yok."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Bakım Planlama", from: "Planlama Mühendisi", time: "—", text: "Büyük yatırım sürecine girmek istemiyorum, şimdilik idare edelim." },
+      { type: "whatsapp", baslik: "Bakım Planlama", from: "Planlama Mühendisi ve Satınalma Uzmanı", time: "—", text: "Satınalma Uzmanı: Bu pompa için yeni bir yatırım talebi açalım mı?\nPlanlama Mühendisi: Büyük yatırım sürecine girmek istemiyorum, şimdilik idare edelim." },
       { type: "data", baslik: "SAP Satınalma Geçmişi", rows: [["9 sipariş", "Hepsi 42-48 bin TL arası"], ["Onay türü", "Hepsi tek imzalı"]] },
       { type: "teams", baslik: "Süreç İyileştirme (Arşiv)", from: "Finansal Planlama ve Kontrol Sorumlusu", time: "—", text: "Tekrarlayan harcamalar için uyarı ekleyelim mi? → \"Not aldım, ileride bakarız.\" (hiç yapılmadı)" }
     ],
@@ -151,7 +151,7 @@ const MINI_VAKALAR = [
       balonlar: ["Kalite rakamları 9 haftadır sürekli kötüleşiyor. Toplantıya taşısak mı?", "Bu hafta gündem dolu. Şimdilik kalsın, sonra bakarız."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Kalite–Üretim Koordinasyonu", from: "Proses Mühendisi", time: "—", text: "Resmi bir talep olmadan onay almak zor... Toplantıda konuşalım mı?" },
+      { type: "whatsapp", baslik: "Kalite–Üretim Koordinasyonu", from: "Proses Mühendisi ve Kalite Geliştirme Şefi", time: "—", text: "Proses Mühendisi: Resmi bir talep olmadan onay almak zor... Toplantıda konuşalım mı?\nKalite Geliştirme Şefi: Bu hafta gündem dolu, şimdilik kalsın." },
       { type: "data", baslik: "Toplantı Notu", rows: [["Karar", "Zaman yetmediği için konuşulamadı, ertelendi."]] },
       { type: "data", baslik: "SAP Kalite Seyri", rows: [["Son 9 haftanın seyri", "Hiç durmadan yükseldi"], ["Otomatik uyarı", "Yok"]] }
     ],
@@ -172,7 +172,7 @@ const MINI_VAKALAR = [
     },
     kanitAni: [
       { type: "teams", baslik: "Erken Duyuru", from: "Organizasyonel Gelişim Müdürü", time: "2. Hafta", text: "İlk 2 hafta harika gitti! Yarın bölge yönetimine de paylaşacağım 🎉" },
-      { type: "whatsapp", baslik: "Proje Ekibi", from: "Proje Mühendisi", time: "5. Hafta", text: "Sorun var demek çok kötü görünür... En olası neden bu operatör, başka türlü açıklamak zor." },
+      { type: "whatsapp", baslik: "Proje Ekibi", from: "Proje Ekibi (Proje Mühendisi ve Ekip Arkadaşı)", time: "5. Hafta", text: "Ekip Arkadaşı: Sahadaki sorunun nedeni ne olabilir?\nProje Mühendisi: Sorun var demek çok kötü görünür... En olası neden bu operatör, başka türlü açıklamak zor." },
       { type: "data", baslik: "SAP Kurallara Uyum Karşılaştırması", rows: [["Suçlanan operatörün uyumu", "Suçlanmayan vardiyadan bile yüksek"]] }
     ],
     kararSorusu: "Hangi anda dürüstçe \"bu iyi gitmiyor\" denseydi her şey değişirdi?",
@@ -190,9 +190,9 @@ const MINI_VAKALAR = [
       balonlar: ["Bant bu hafta yine birkaç kez durdu. Bunu kayda geçirsek mi?", "Hepsi 15 dakikadan kısa, arıza sayılmaz. Zaten hemen çalışıyor."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Bakım Takip", from: "Makine Bakım Ustabaşı", time: "—", text: "Aylarca söyledim, duvara konuşuyor gibiydim." },
+      { type: "whatsapp", baslik: "Bakım Takip", from: "Bakım Takip (Ustabaşı ve Üretim Sorumlusu)", time: "—", text: "Üretim Sorumlusu: Bant yine durmuş, ne oluyor?\nBakım Ustabaşı: Aylarca söyledim, duvara konuşuyor gibiydim." },
       { type: "data", baslik: "Bakım Kaydı ve Sevkiyat Kaydı", rows: [["Aynı 4 tarih", "Hem küçük duruşlar hem teslimat gecikmeleri en yüksek seviyede"]] },
-      { type: "data", baslik: "Performans Panosu", rows: [["Makine verimliliği (OEE)", "%89 (Yeşil)"], ["Bayiye zamanında teslimat (ayrı pano)", "%78 (Kırmızı)"]] }
+      { type: "data", baslik: "Performans Panosu", rows: [["Makine verimliliği panosu (OEE: makinenin ne kadar verimli çalıştığı)", "%89 → Yeşil (iyi görünüyor)"], ["Bayiye zamanında teslimat panosu (ayrı rapor)", "%78 → Kırmızı (kötü)"], ["Sonuç", "İki pano ayrı raporlarda, kimse yan yana koymadı"]] }
     ],
     kararSorusu: "Hangi iki rapor yan yana konsaydı, sorun aylar önce anlaşılırdı?",
     dogruCozum: "Sorun bir kişide değil, ölçüm şeklindeydi: 15 dakikadan kısa duruşlar hiç sayılmıyordu. Bakım kayıtları ile teslimat gecikmeleri yan yana konsaydı bağlantı görülürdü.",
@@ -210,7 +210,7 @@ const MINI_VAKALAR = [
     },
     kanitAni: [
       { type: "teams", baslik: "Yatırım Önerileri (Arşiv)", from: "Çevre Mühendisi", time: "2 yıl boyunca", text: "Toz önleme yatırımı önerildi ama 2 yıl üst üste \"yasal zorunluluk yok\" denilerek ertelendi." },
-      { type: "data", baslik: "Şikâyet Kaydı", rows: [["3 yıllık şikâyet sayısı", "7 → 11 → 14 (+ 1 resmi başvuru)"]] },
+      { type: "data", baslik: "Şikâyet Kaydı", rows: [["Komşulardan gelen toz şikâyeti (yıl yıl)", "1. yıl: 7 → 2. yıl: 11 → 3. yıl: 14"], ["Resmi (yazılı) başvuru", "1 adet"], ["Sonuç", "Şikâyetler her yıl artıyor, sorun kendiliğinden geçmiyor"]] },
       { type: "data", baslik: "Ölçüm Notu", rows: [["3 yıllık ölçüm günleri", "Hep rüzgârsız günde yapılmış"]] }
     ],
     kararSorusu: "Şirket hiçbir yasayı çiğnemedi. Bu, 2 yıllık ertelemeyi haklı çıkarır mı?",
