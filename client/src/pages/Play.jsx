@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useGame } from "../context/GameContext";
 import TeamCreate from "./play/TeamCreate";
+import TeamRecovery from "./play/TeamRecovery";
 import Briefing from "./play/Briefing";
 import BolumAyirici from "./play/BolumAyirici";
 import OlayAni from "./play/OlayAni";
@@ -35,7 +36,7 @@ const STAGE_COMPONENTS = {
 };
 
 export default function Play() {
-  const { team, loading } = useGame();
+  const { team, loading, netDown, teamMissing } = useGame();
   const [muted, setMuted] = useState(soundEngine.isMuted());
   const [showMap, setShowMap] = useState(false);
   const [broadcastMsg, setBroadcastMsg] = useState(null);
@@ -64,7 +65,16 @@ export default function Play() {
     return () => clearInterval(interval);
   }, [team, lastBroadcastTime]);
 
-  if (loading) return <p className="spinner-text">Yükleniyor...</p>;
+  if (loading) {
+    return (
+      <p className="spinner-text">
+        {netDown
+          ? "Sunucuya bağlanılıyor... İlk açılış bir dakikaya kadar sürebilir, lütfen sayfayı kapatmayın."
+          : "Yükleniyor..."}
+      </p>
+    );
+  }
+  if (!team && teamMissing) return <TeamRecovery />;
   if (!team) return <TeamCreate />;
 
   const StageComponent = STAGE_COMPONENTS[team.currentStage] || Briefing;
@@ -76,6 +86,25 @@ export default function Play() {
 
   return (
     <>
+      {netDown && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            background: "#c62828",
+            color: "#fff",
+            textAlign: "center",
+            padding: "0.4rem 0.8rem",
+            fontSize: "0.85rem",
+            fontWeight: 700
+          }}
+        >
+          Bağlantı kesildi, yeniden bağlanılıyor... Cevabınız kaybolmaz, sayfayı kapatmayın.
+        </div>
+      )}
       <div className="top-bar">
         <span>👥 {team.name}</span>
 

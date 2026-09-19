@@ -25,16 +25,31 @@ export const adminToken = {
   }
 };
 
+// Oyuncu ekranı bu olayları dinleyerek "bağlantı koptu" / "takım kaydı yok" durumlarını yönetir
+const emit = (name) => window.dispatchEvent(new Event(name));
+
 async function request(path, options = {}) {
   const token = adminToken.get();
-  const res = await fetch(BASE + path, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {})
-    }
-  });
+  let res;
+  try {
+    res = await fetch(BASE + path, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {})
+      }
+    });
+  } catch (e) {
+    // İnternet yok ya da sunucu (Render) uykudan uyanıyor
+    emit("vc-net-down");
+    const err = new Error("Sunucuya bağlanılamadı. Bağlantınızı kontrol edin.");
+    err.network = true;
+    throw err;
+  }
+  // 502/503/504: Render sunucuyu başlatırken verir — bağlantı sorunu sayılır
+  const gateway = [502, 503, 504].includes(res.status);
+  emit(gateway ? "vc-net-down" : "vc-net-up");
   const isJson = res.headers.get("content-type")?.includes("application/json");
   const body = isJson ? await res.json() : await res.text();
   if (res.status === 401 && !path.startsWith("/admin/login")) {
@@ -44,9 +59,13 @@ async function request(path, options = {}) {
   }
   if (!res.ok) {
     const message = (isJson && body && body.error) || "Bir hata oluştu.";
-    const err = new Error(message);
+    const err = new Error(gateway ? "Sunucu şu an yanıt vermiyor, yeniden deneniyor." : message);
     err.status = res.status;
     err.body = body;
+    err.network = gateway;
+    // Sunucu yeniden başlatılmış/sıfırlanmışsa takım kaydı kalmaz
+    err.teamMissing = res.status === 404 && /Takım bulunamadı/.test(message);
+    if (err.teamMissing) emit("vc-team-missing");
     throw err;
   }
   return body;
