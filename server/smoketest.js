@@ -34,6 +34,20 @@ const metaJson = JSON.stringify(cases.listMiniVakaMeta());
 assert.ok(!metaJson.includes("dogruCozum") && !metaJson.includes("kararSorusu"));
 console.log("listMiniVakaMeta() cevap anahtarı sızdırmıyor. ✔");
 
+// Yerel puan önerisi: Türkçe ekleri ve büyük İ harfini doğru işlemeli
+{
+  const { suggestScore, normalize } = require("./utils/keywordScore");
+  assert.deepStrictEqual(normalize("İş İç İlişki"), ["is", "ic", "iliski"], "büyük İ kelimeyi bölmemeli");
+  const ref = cases.MINI_VAKALAR[0].dogruCozum;
+  const good = suggestScore("Sinyal görüldü ama küçük bulunduğu için resmi sisteme girilmedi. Her tehlike hemen bildirilmeliydi.", ref);
+  const weak = suggestScore("İş güvenliği sistemine girmek gerekirdi. İhbar edilmeliydi.", ref);
+  const none = suggestScore("bilmiyorum", ref);
+  assert.ok(good >= 60, `iyi cevap düşük puan aldı: ${good}`);
+  assert.ok(good > weak && weak > none, `sıralama yanlış: ${good}/${weak}/${none}`);
+  assert.ok(good % 5 === 0 && good <= 100);
+  console.log(`Yerel puan önerisi: iyi cevap ${good}, zayıf cevap ${weak}, alakasız ${none}. ✔`);
+}
+
 // Veritabanı şeması kurulabiliyor mu?
 try {
   const db = require("./db.js");

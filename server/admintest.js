@@ -6,15 +6,31 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 
-const PORT = 3900 + Math.floor(Math.random() * 90);
 const PIN = "246810";
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "vc-admintest-"));
-const BASE = `http://127.0.0.1:${PORT}/api`;
 
-const server = spawn(process.execPath, ["--no-warnings", path.join(__dirname, "server.js")], {
-  env: { ...process.env, PORT: String(PORT), ADMIN_PIN: PIN, DB_PATH: path.join(tmp, "test.sqlite3") },
-  stdio: "ignore"
-});
+let PORT;
+let BASE;
+let server;
+
+// İşletim sisteminden boş bir port iste (sabit/rastgele port başka bir işlemle çakışabiliyordu)
+function getFreePort() {
+  return new Promise((resolve, reject) => {
+    const srv = require("net").createServer();
+    srv.once("error", reject);
+    srv.listen(0, "127.0.0.1", () => {
+      const { port } = srv.address();
+      srv.close(() => resolve(port));
+    });
+  });
+}
+
+function startServer() {
+  server = spawn(process.execPath, ["--no-warnings", path.join(__dirname, "server.js")], {
+    env: { ...process.env, PORT: String(PORT), ADMIN_PIN: PIN, DB_PATH: path.join(tmp, "test.sqlite3") },
+    stdio: "ignore"
+  });
+}
 
 async function call(method, url, body, token) {
   const res = await fetch(BASE + url, {
@@ -71,6 +87,9 @@ async function waitUp() {
 
 (async () => {
   try {
+    PORT = await getFreePort();
+    BASE = `http://127.0.0.1:${PORT}/api`;
+    startServer();
     await waitUp();
 
     // 1) Yetkisiz erişim reddedilmeli
@@ -233,7 +252,7 @@ async function waitUp() {
 })();
 
 function cleanup(code) {
-  server.kill();
+  if (server) server.kill();
   setTimeout(() => {
     try { fs.rmSync(tmp, { recursive: true, force: true }); } catch (e) {}
     process.exit(code);

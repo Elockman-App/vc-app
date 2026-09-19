@@ -17,7 +17,10 @@ const STOPWORDS = new Set([
 ]);
 
 function normalize(text) {
-  return (text || "")
+  return String(text || "")
+    // Büyük İ/I: toLowerCase() "İ"yi "i" + birleşik nokta yapıp kelimeyi ikiye bölüyordu ("İş" -> "i s")
+    .replace(/İ/g, "i")
+    .replace(/I/g, "i")
     .toLowerCase()
     .replace(/ç/g, "c").replace(/ğ/g, "g").replace(/ı/g, "i")
     .replace(/ö/g, "o").replace(/ş/g, "s").replace(/ü/g, "u")
@@ -26,24 +29,44 @@ function normalize(text) {
     .filter(Boolean);
 }
 
+// Türkçe eklemeli bir dildir ("sistem", "sisteme", "sistemin"): kelimeleri ilk 5 harfle (kök) karşılaştırırız.
+const STEM_LEN = 5;
+function stem(word) {
+  return word.length > STEM_LEN ? word.slice(0, STEM_LEN) : word;
+}
+
 function extractKeywords(referansMetin) {
   const words = normalize(referansMetin);
   const meaningful = words.filter((w) => w.length >= 4 && !STOPWORDS.has(w));
   return [...new Set(meaningful)];
 }
 
+// Referanstaki anahtar kelimelerin bu oranı cevapta geçerse "tam puan" önerilir.
+// (İyi bir cevap referans metni kelime kelime tekrarlamaz, o yüzden tavanı %45'e çektik.)
+const FULL_SCORE_RATIO = 0.45;
+
 /**
- * @returns {number} 0-100 arası öneri puanı (yüzde kaç anahtar kelime eşleşti)
+ * @returns {number|null} 0-100 arası, 5'in katı olan öneri puanı
+ *   - Anahtar kelimeler kök (ilk 5 harf) üzerinden eşleştirilir.
+ *   - Çok kısa cevaplar (1-2 kelime en fazla 15, 3-5 kelime en fazla 50) sınırlanır.
  */
 function suggestScore(answerText, referansMetin) {
   const keywords = extractKeywords(referansMetin);
   if (keywords.length === 0) return null;
 
-  const answerWords = new Set(normalize(answerText));
-  const matched = keywords.filter((k) => answerWords.has(k));
+  const answerWords = normalize(answerText);
+  if (answerWords.length === 0) return 0;
+
+  const answerStems = new Set(answerWords.map(stem));
+  const matched = keywords.filter((k) => answerStems.has(stem(k)));
 
   const ratio = matched.length / keywords.length;
-  return Math.round(ratio * 100);
+  let score = Math.min(100, (ratio / FULL_SCORE_RATIO) * 100);
+
+  if (answerWords.length < 3) score = Math.min(score, 15);
+  else if (answerWords.length < 6) score = Math.min(score, 50);
+
+  return Math.round(score / 5) * 5;
 }
 
-module.exports = { suggestScore, extractKeywords, normalize };
+module.exports = { suggestScore, extractKeywords, normalize, stem };
