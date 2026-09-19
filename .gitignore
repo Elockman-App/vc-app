@@ -1,0 +1,30 @@
+# Bağımlılıklar
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Derleme çıktıları
+client/dist/
+client/build/
+
+# Ortam değişkenleri
+.env
+.env.local
+.env.*.local
+
+# Veritabanı (geliştirme)
+server/db/*.sqlite3
+server/db/*.sqlite3-shm
+server/db/*.sqlite3-wal
+
+# Log dosyaları
+*.log
+npm-debug.log*
+
+# İşletim sistemi
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
