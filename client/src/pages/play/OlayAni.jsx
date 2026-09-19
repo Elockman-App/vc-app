@@ -31,8 +31,8 @@ export default function OlayAni() {
 
         <div style={{ flex: 1 }} />
 
-        <SpeechBubble text={miniVaka.olayAni.balonlar[0]} align="left" />
-        <SpeechBubble text={miniVaka.olayAni.balonlar[1]} align="right" />
+        <SpeechBubble text={miniVaka.olayAni.balonlar[0]} speaker={miniVaka.olayAni.konusanlar?.[0]} align="left" />
+        <SpeechBubble text={miniVaka.olayAni.balonlar[1]} speaker={miniVaka.olayAni.konusanlar?.[1]} align="right" />
 
         <button className="btn" onClick={advance}>
           {t("event.next")}

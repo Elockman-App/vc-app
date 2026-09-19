@@ -19,7 +19,12 @@ export default function Briefing() {
       </p>
       <div className="card-dark" style={{ borderLeft: "4px solid var(--red)" }}>
         <div style={{ fontWeight: 700, color: "#ff8080", marginBottom: 6 }}>{t("brief.noteTitle")}</div>
-        <div className="muted" style={{ fontStyle: "italic" }}>{t("brief.noteBody")}</div>
+        <div className="muted" style={{ marginBottom: 6 }}>{t("brief.noteBody")}</div>
+        {[1, 2, 3].map((n) => (
+          <div key={n} style={{ padding: "6px 10px", marginBottom: 4, background: "rgba(255,255,255,0.06)", borderRadius: 6, fontSize: "0.9rem" }}>
+            🔒 {t("brief.slot", { n })}
+          </div>
+        ))}
       </div>
       <div className="card-dark">
         <div style={{ fontWeight: 700, color: "var(--gold)", marginBottom: 6 }}>{t("how.title")}</div>

@@ -67,6 +67,7 @@ function sanitize(input) {
     baslik: str(input.baslik, 60, "Başlık"),
     olayAni: {
       ozet: str(input.olayAni?.ozet, 600, "Olay özeti"),
+      konusanlar: (Array.isArray(input.olayAni?.konusanlar) ? input.olayAni.konusanlar : ["", ""]).slice(0, 2).map((k, i) => str(k, 40, `Konuşan ${i + 1}`, false)),
       balonlar: balonlar.map((b, i) => str(b, 200, `Balon ${i + 1}`))
     },
     kanitAni,
@@ -95,7 +96,7 @@ function clearOverride(sira, lang) {
 function editableView(sira, lang) {
   const pick = (mv) => ({
     baslik: mv.baslik,
-    olayAni: { ozet: mv.olayAni.ozet, balonlar: mv.olayAni.balonlar },
+    olayAni: { ozet: mv.olayAni.ozet, konusanlar: mv.olayAni.konusanlar || ["", ""], balonlar: mv.olayAni.balonlar },
     kanitAni: mv.kanitAni,
     kararSorusu: mv.kararSorusu,
     dogruCozum: mv.dogruCozum,

@@ -51,10 +51,8 @@ const MINI_VAKALAR = [
     heroGorsel: "kayan_an.jpg",
     olayAni: {
       ozet: "Hasanoğlan Hazır Beton Tesisi, hammadde sahası. Bir operatör yerde küçük bir hidrolik yağ sızıntısı görüyor. Yanındakilere sözlü olarak söylüyor ama bunu şirketin resmi bildirim sistemine hiç girmiyor.",
-      balonlar: [
-        "Dikkat, zemin ıslak ve kaygan!",
-        "Boş ver, burası hep biraz sızdırır."
-      ]
+      konusanlar: ["Operatör", "Vardiya Amiri"],
+      balonlar: ["Şurada yağ dökülmüş, zemin kayıyor. Bildirim açsam mı?", "Boş ver, gün sonunda silerler. Bir de kâğıt işiyle uğraşma."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Saha Mesaj Grubu", from: "Operatör", time: "11:15", text: "Şurada yağ sızıntısı var, dikkat edin, zemin kayıyor." },
@@ -71,14 +69,12 @@ const MINI_VAKALAR = [
     baslik: "GÖLGEDEKİ ORTAK",
     heroGorsel: "golgedeki_ortak.jpg",
     olayAni: {
-      ozet: "Ankara Fabrika, gece. Bakım Müdürü, yakın bir akrabasının yeni kurduğu şirketten yedek parça alıyor. Bu akrabalığı şirkette kimseye bildirmiyor.",
-      balonlar: [
-        "Gece yarısı telefonum çaldı.",
-        "Merak etme, tanıdığım biri halleder."
-      ]
+      ozet: "Ankara Fabrika, gece. Bakım Müdürü, yeğeninin yeni kurduğu şirketten yedek parça alıyor. Bu akrabalığı şirkette kimseye bildirmiyor.",
+      konusanlar: ["Satınalma Uzmanı", "Bakım Müdürü"],
+      balonlar: ["Müdürüm, bu firmayı sistemde daha önce görmedim. Kayıt formunu dolduralım mı?", "Gerek yok, yeğenim kurdu bu firmayı. Ben ona güveniyorum."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Kişisel Hat", from: "Tedarikçi Sahibi", time: "22:10", text: "Abi, kırıcı motoru bulduk. Ablamın kahvaltısına da uğrarım 😄" },
+      { type: "whatsapp", baslik: "Kişisel Hat", from: "Tedarikçi Sahibi (Müdürün yeğeni)", time: "22:10", text: "Dayı, aradığın kırıcı motoru buldum, yarın sabah getiriyorum. Cumartesi yemeğe de geliyorum, annem seni sordu 😄" },
       { type: "data", baslik: "SAP Tedarikçi Kaydı", rows: [["Akrabalık / ortaklık bildirimi", "HAYIR"], ["Kayıt tarihi", "İlk siparişle aynı gün"]] },
       { type: "quote", baslik: "Tanık İfadesi", who: "Bakım Müdürü", text: "Kimse sormadı, ben de söylemedim." }
     ],
@@ -93,10 +89,8 @@ const MINI_VAKALAR = [
     heroGorsel: "kirik_zincir.jpg",
     olayAni: {
       ozet: "Sivas Fabrika, gece vardiyası. Bir bandın koruyucu kapağı 4 gündür yok. Bu bilgi vardiyadan vardiyaya sadece ağızdan ağza aktarılıyor ve yeni gelen operatöre hiç ulaşmıyor.",
-      balonlar: [
-        "O koruyucu kapak nerede?",
-        "Boş ver, birkaç gündür böyle."
-      ]
+      konusanlar: ["Yeni Operatör", "Gece Operatörü"],
+      balonlar: ["Bu bandın koruyucu kapağı nerede? Kimse bana bir şey söylemedi.", "Bir süredir yok, biz alıştık. Sen sadece dikkat et."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Vardiya Grubu", from: "Gece Operatörü", time: "07:08", text: "Kapak yok, gördüm. Ne oldu? → \"Tamire gitti, biz böyle şeylere alışığız.\"" },
@@ -115,10 +109,8 @@ const MINI_VAKALAR = [
     heroGorsel: "bu_seferlik.jpg",
     olayAni: {
       ozet: "Kayaş Hazır Beton Tesisi, gece. Büyük bir müşteri sözleşmeyi iptal etmekle tehdit ediyor. Saha sorumlusu bir sürücüyü ek sevkiyata gönderiyor ve sürücünün çıkış saatini kayıtlarda değiştiriyor.",
-      balonlar: [
-        "Mesaim bitti ama telefon susmuyor.",
-        "Bu seferlik bir çözüm bulalım."
-      ]
+      konusanlar: ["Sürücü", "Saha Sorumlusu"],
+      balonlar: ["Mesaim bitti ama müşteri hâlâ bekliyor. Bu sevkiyat kayda nasıl geçecek?", "Sen git, kaydı ben düzeltirim. Bu seferlik idare edelim."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Sevkiyat Ekibi", from: "Saha Sorumlusu", time: "20:52", text: "Bu seferlik idare et, mesai kaydını ben düzeltirim." },
@@ -136,10 +128,8 @@ const MINI_VAKALAR = [
     heroGorsel: "esigin_altinda.jpg",
     olayAni: {
       ozet: "Ankara Fabrika. 50.000 TL altındaki alımlar için tek imza yeterli. Bir mühendis aynı pompayı 9 ayda 9 kez onartıyor ve her seferinde tutarı bu sınırın altında tutuyor.",
-      balonlar: [
-        "Yine aynı arıza kaydı mı açıldı?",
-        "Büyütmeye gerek yok, hemen hallederiz."
-      ]
+      konusanlar: ["Satınalma Uzmanı", "Planlama Mühendisi"],
+      balonlar: ["Bu pompa için yine arıza kaydı açılmış. Bu kaçıncı oldu?", "Tutar hep 50 bin altında, tek imza yeter. Büyütmeye gerek yok."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Bakım Planlama", from: "Planlama Mühendisi", time: "—", text: "Büyük yatırım sürecine girmek istemiyorum, şimdilik idare edelim." },
@@ -157,10 +147,8 @@ const MINI_VAKALAR = [
     heroGorsel: "bos_sandalye.jpg",
     olayAni: {
       ozet: "Yozgat Fabrika. Kalite Geliştirme Şefi, kalite değerlerinde kötüye giden bir seyir fark ediyor ama resmi rapor açmıyor. Konu toplantıda ertelenince bir daha hiç gündeme gelmiyor.",
-      balonlar: [
-        "Bu rakamlar hep aynı yönde gidiyor.",
-        "Şimdi gündemde değil, sonra bakarız."
-      ]
+      konusanlar: ["Proses Mühendisi", "Kalite Geliştirme Şefi"],
+      balonlar: ["Kalite rakamları 9 haftadır sürekli kötüleşiyor. Toplantıya taşısak mı?", "Bu hafta gündem dolu. Şimdilik kalsın, sonra bakarız."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Kalite–Üretim Koordinasyonu", from: "Proses Mühendisi", time: "—", text: "Resmi bir talep olmadan onay almak zor... Toplantıda konuşalım mı?" },
@@ -179,10 +167,8 @@ const MINI_VAKALAR = [
     heroGorsel: "yanlis_isim.jpg",
     olayAni: {
       ozet: "Nevşehir Fabrika. Yeni bir deneme projesi (pilot proje) 2. haftada \"başarılı\" ilan edilip herkese duyuruluyor. Sorunlar başlayınca sorumlu kişi, kanıt olmadan suçu bir operatöre yüklüyor.",
-      balonlar: [
-        "Herkes kutluyor ama içim rahat değil.",
-        "Şimdi bunu konuşmanın sırası değil."
-      ]
+      konusanlar: ["Proje Mühendisi", "Organizasyonel Gelişim Müdürü"],
+      balonlar: ["Herkes kutluyor ama sahadaki sorunlar bitmedi, içim rahat değil.", "Şimdi bunu konuşmanın sırası değil. Başarıyı bozmayalım."]
     },
     kanitAni: [
       { type: "teams", baslik: "Erken Duyuru", from: "Organizasyonel Gelişim Müdürü", time: "2. Hafta", text: "İlk 2 hafta harika gitti! Yarın bölge yönetimine de paylaşacağım 🎉" },
@@ -200,10 +186,8 @@ const MINI_VAKALAR = [
     heroGorsel: "gorunmeyen_durus.jpg",
     olayAni: {
       ozet: "Samsun Fabrika. Haftada 15-20 kez, her biri 15 dakikadan kısa süren küçük duruşlar (mikro duruş) oluyor. Bunlar resmi arıza sayılmadığı için performans göstergeleri hep yeşil görünüyor.",
-      balonlar: [
-        "Bant yine birkaç dakika durdu.",
-        "Önemli değil, zaten hemen çalışıyor."
-      ]
+      konusanlar: ["Bakım Ustabaşı", "Üretim Sorumlusu"],
+      balonlar: ["Bant bu hafta yine birkaç kez durdu. Bunu kayda geçirsek mi?", "Hepsi 15 dakikadan kısa, arıza sayılmaz. Zaten hemen çalışıyor."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Bakım Takip", from: "Makine Bakım Ustabaşı", time: "—", text: "Aylarca söyledim, duvara konuşuyor gibiydim." },
@@ -221,10 +205,8 @@ const MINI_VAKALAR = [
     heroGorsel: "duvarin_otesi.jpg",
     olayAni: {
       ozet: "Ankara Fabrika. Fabrika yasal sınırları aşmıyor ama komşulardan 2 yıldır toz şikâyeti geliyor. Toz önleme yatırımı 3 kez \"yasal zorunluluk yok\" denilerek erteleniyor.",
-      balonlar: [
-        "Duvarın öbür tarafından yine şikâyet geldi.",
-        "Elimizden geleni yapıyoruz zaten."
-      ]
+      konusanlar: ["Çevre Mühendisi", "Fabrika Yönetimi"],
+      balonlar: ["Komşulardan yine toz şikâyeti geldi. Toz önleme yatırımını artık yapalım mı?", "Yasal bir zorunluluk yok, elimizden geleni yapıyoruz zaten. Bu yıl da olmaz."]
     },
     kanitAni: [
       { type: "teams", baslik: "Yatırım Önerileri (Arşiv)", from: "Çevre Mühendisi", time: "2 yıl boyunca", text: "Toz önleme yatırımı önerildi ama 2 yıl üst üste \"yasal zorunluluk yok\" denilerek ertelendi." },

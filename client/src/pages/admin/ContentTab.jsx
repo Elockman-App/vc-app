@@ -10,6 +10,8 @@ function toForm(cur) {
   return {
     baslik: cur.baslik,
     ozet: cur.olayAni.ozet,
+    kon1: (cur.olayAni.konusanlar || [])[0] || "",
+    kon2: (cur.olayAni.konusanlar || [])[1] || "",
     balon1: cur.olayAni.balonlar[0] || "",
     balon2: cur.olayAni.balonlar[1] || "",
     kararSorusu: cur.kararSorusu,
@@ -30,7 +32,7 @@ function toForm(cur) {
 function fromForm(f) {
   return {
     baslik: f.baslik,
-    olayAni: { ozet: f.ozet, balonlar: [f.balon1, f.balon2] },
+    olayAni: { ozet: f.ozet, konusanlar: [f.kon1, f.kon2], balonlar: [f.balon1, f.balon2] },
     kararSorusu: f.kararSorusu,
     dogruCozum: f.dogruCozum,
     finalIcgorusu: f.finalIcgorusu,
@@ -184,7 +186,9 @@ export default function ContentTab({ onChanged }) {
           )}
           <Field label="Vaka başlığı" value={form.baslik} onChange={(v) => set("baslik", v)} />
           <Field label="Olay özeti" value={form.ozet} onChange={(v) => set("ozet", v)} multiline rows={3} />
+          <Field label="Konuşan 1 (rol)" value={form.kon1} onChange={(v) => set("kon1", v)} />
           <Field label="Konuşma balonu 1" value={form.balon1} onChange={(v) => set("balon1", v)} />
+          <Field label="Konuşan 2 (rol)" value={form.kon2} onChange={(v) => set("kon2", v)} />
           <Field label="Konuşma balonu 2" value={form.balon2} onChange={(v) => set("balon2", v)} />
 
           {form.kanitlar.map((k, i) => (

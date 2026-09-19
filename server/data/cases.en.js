@@ -34,7 +34,8 @@ const VAKA_EN = [
     baslik: "THE SLIPPERY MOMENT",
     olayAni: {
       ozet: "Hasanoğlan Ready-Mix Plant, raw material yard. An operator sees a small hydraulic oil leak on the floor. He tells the people nearby out loud, but never enters it into the company's official reporting system.",
-      balonlar: ["Careful, the floor is wet and slippery!", "Forget it, it always leaks a little here."]
+      konusanlar: ["Operator", "Shift Supervisor"],
+      balonlar: ["There's oil spilled over there, the floor is slippery. Should I file a report?", "Forget it, they'll wipe it up by the end of the day. Don't bother with the paperwork."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Site Message Group", from: "Operator", time: "11:15", text: "There's an oil leak over there, be careful, the floor is slippery." },
@@ -48,11 +49,12 @@ const VAKA_EN = [
   {
     baslik: "THE PARTNER IN THE SHADOWS",
     olayAni: {
-      ozet: "Ankara Plant, at night. The Maintenance Manager buys spare parts from a company that was just founded by a close relative. He tells no one at the company about this family connection.",
-      balonlar: ["My phone rang in the middle of the night.", "Don't worry, someone I know will take care of it."]
+      ozet: "Ankara Plant, at night. The Maintenance Manager buys spare parts from a company that was just founded by his nephew. He tells no one at the company about this family connection.",
+      konusanlar: ["Purchasing Specialist", "Maintenance Manager"],
+      balonlar: ["Sir, I haven't seen this company in the system before. Shall we fill in the registration form?", "No need, my nephew founded this company. I trust him."]
     },
     kanitAni: [
-      { type: "whatsapp", baslik: "Personal Line", from: "Supplier Owner", time: "22:10", text: "Bro, we found the crusher motor. I'll also stop by for my sister's breakfast 😄" },
+      { type: "whatsapp", baslik: "Personal Line", from: "Supplier Owner (the Manager's nephew)", time: "22:10", text: "Uncle, I found the crusher motor you were looking for, I'll bring it tomorrow morning. I'm also coming to the Saturday dinner, mom asked about you 😄" },
       { type: "data", baslik: "SAP Supplier Record", rows: [["Family / ownership relationship declared", "NO"], ["Registration date", "Same day as the first order"]] },
       { type: "quote", baslik: "Witness Statement", who: "Maintenance Manager", text: "Nobody asked, and I didn't say anything." }
     ],
@@ -64,7 +66,8 @@ const VAKA_EN = [
     baslik: "THE BROKEN CHAIN",
     olayAni: {
       ozet: "Sivas Plant, night shift. The guard cover of a conveyor belt has been missing for 4 days. This information is only passed on by word of mouth from shift to shift, and never reaches the new operator.",
-      balonlar: ["Where is that guard cover?", "Forget it, it's been like this for a few days."]
+      konusanlar: ["New Operator", "Night Operator"],
+      balonlar: ["Where is this conveyor's guard cover? Nobody told me anything.", "It's been gone for a while, we're used to it. Just be careful."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Shift Group", from: "Night Operator", time: "07:08", text: "The cover is missing, I saw it. What happened? → \"It went for repair, we're used to this kind of thing.\"" },
@@ -80,7 +83,8 @@ const VAKA_EN = [
     baslik: "JUST THIS ONCE",
     olayAni: {
       ozet: "Kayaş Ready-Mix Plant, at night. A major customer threatens to cancel the contract. The site supervisor sends a driver on an extra delivery and changes the driver's exit time in the records.",
-      balonlar: ["My shift is over but the phone won't stop ringing.", "Let's find a solution, just this once."]
+      konusanlar: ["Driver", "Site Supervisor"],
+      balonlar: ["My shift is over but the customer is still waiting. How will this delivery be recorded?", "You go, I'll fix the record. Let's get by just this once."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Dispatch Team", from: "Site Supervisor", time: "20:52", text: "Just this once, bear with it, I'll fix the timesheet." },
@@ -95,7 +99,8 @@ const VAKA_EN = [
     baslik: "BELOW THE THRESHOLD",
     olayAni: {
       ozet: "Ankara Plant. For purchases under 50,000 TL, one signature is enough. An engineer has the same pump repaired 9 times in 9 months, and each time keeps the amount below this limit.",
-      balonlar: ["Was the same failure logged again?", "No need to make it a big deal, we'll sort it out right away."]
+      konusanlar: ["Purchasing Specialist", "Planning Engineer"],
+      balonlar: ["A failure report was opened for this pump again. How many times is this now?", "The amount is always under 50 thousand, one signature is enough. No need to make it a big deal."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Maintenance Planning", from: "Planning Engineer", time: "—", text: "I don't want to go through the big investment process, let's just get by for now." },
@@ -110,7 +115,8 @@ const VAKA_EN = [
     baslik: "THE EMPTY CHAIR",
     olayAni: {
       ozet: "Yozgat Plant. The Quality Development Supervisor notices quality figures getting worse over time, but does not open a formal report. When the topic is postponed in a meeting, it never comes up again.",
-      balonlar: ["These numbers keep going in the same direction.", "It's not on the agenda now, we'll look at it later."]
+      konusanlar: ["Process Engineer", "Quality Development Supervisor"],
+      balonlar: ["The quality figures have been getting worse for 9 weeks. Should we take it to the meeting?", "The agenda is full this week. Let's leave it for now and look at it later."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Quality–Production Coordination", from: "Process Engineer", time: "—", text: "It's hard to get approval without a formal request... Shall we talk about it in the meeting?" },
@@ -126,7 +132,8 @@ const VAKA_EN = [
     baslik: "THE WRONG NAME",
     olayAni: {
       ozet: "Nevşehir Plant. A new trial project (pilot project) is declared \"successful\" in week 2 and announced to everyone. When problems begin, the person in charge blames an operator without any evidence.",
-      balonlar: ["Everyone is celebrating but I'm uneasy.", "Now is not the time to talk about this."]
+      konusanlar: ["Project Engineer", "Organizational Development Manager"],
+      balonlar: ["Everyone is celebrating but the problems in the field aren't over, I'm uneasy.", "Now is not the time to talk about this. Let's not spoil the success."]
     },
     kanitAni: [
       { type: "teams", baslik: "Early Announcement", from: "Organizational Development Manager", time: "Week 2", text: "The first 2 weeks went great! I'll share it with regional management tomorrow too 🎉" },
@@ -141,7 +148,8 @@ const VAKA_EN = [
     baslik: "THE INVISIBLE STOP",
     olayAni: {
       ozet: "Samsun Plant. 15-20 times a week, small stops (micro-stops) of less than 15 minutes each occur. Because they are not counted as official breakdowns, the performance indicators always look green.",
-      balonlar: ["The line stopped for a few minutes again.", "It's nothing, it starts right back up anyway."]
+      konusanlar: ["Maintenance Foreman", "Production Supervisor"],
+      balonlar: ["The line stopped a few times again this week. Should we log it?", "They're all under 15 minutes, that doesn't count as a breakdown. It starts right back up anyway."]
     },
     kanitAni: [
       { type: "whatsapp", baslik: "Maintenance Tracking", from: "Machine Maintenance Foreman", time: "—", text: "I said it for months, it felt like talking to a wall." },
@@ -156,7 +164,8 @@ const VAKA_EN = [
     baslik: "BEYOND THE WALL",
     olayAni: {
       ozet: "Ankara Plant. The plant does not exceed any legal limit, but neighbors have been complaining about dust for 2 years. The dust-prevention investment is postponed 3 times on the grounds of \"no legal obligation\".",
-      balonlar: ["Another complaint came from the other side of the wall.", "We're doing what we can anyway."]
+      konusanlar: ["Environmental Engineer", "Plant Management"],
+      balonlar: ["Another dust complaint came from the neighbors. Shall we finally make the dust-prevention investment?", "There's no legal obligation, we're doing what we can anyway. Not this year either."]
     },
     kanitAni: [
       { type: "teams", baslik: "Investment Proposals (Archive)", from: "Environmental Engineer", time: "For 2 years", text: "The dust-prevention investment was proposed but postponed 2 years in a row on the grounds of \"no legal obligation\"." },
