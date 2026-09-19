@@ -34,6 +34,25 @@ export default function AdminDashboard() {
   );
 }
 
+// SQLite datetime('now') UTC ve "YYYY-MM-DD HH:MM:SS" biçiminde (saat dilimi yok) döner
+function parseUtc(s) {
+  if (!s) return null;
+  const str = String(s);
+  const d = new Date(str.includes("T") ? str : str.replace(" ", "T") + "Z");
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function minutesSince(s, nowMs) {
+  const d = parseUtc(s);
+  return d ? Math.max(0, Math.floor((nowMs - d.getTime()) / 60000)) : null;
+}
+
+function formatClock(d) {
+  return d ? d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "-";
+}
+
+const STUCK_MINUTES = 10;
+
 function AdminLogin({ onLoggedIn }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(null);
@@ -67,7 +86,7 @@ function AdminLogin({ onLoggedIn }) {
         <form className="admin-card" onSubmit={submit}>
           <h3 style={{ marginTop: 0 }}>Admin PIN</h3>
           <p className="muted" style={{ fontSize: "0.85rem" }}>
-            PIN, sunucu konsolunda (start.bat penceresi) veya Render'daki ADMIN_PIN ayarında yazar.
+            PIN, sunucu konsolunda (sunucuyu başlattığınız pencere) veya Render'daki ADMIN_PIN ayarında yazar.
           </p>
           <input
             type="password"
@@ -105,11 +124,36 @@ function AdminPanel({ onLogout }) {
   const [showReset, setShowReset] = useState(false);
   const [resetText, setResetText] = useState("");
   const [resetMsg, setResetMsg] = useState(null);
+  const [offline, setOffline] = useState(false);
+  const [lastOk, setLastOk] = useState(null);
+  const [sessionNameDraft, setSessionNameDraft] = useState(null);
+  const [hideScores, setHideScores] = useState(() => {
+    try {
+      return localStorage.getItem("vc_hide_scores") === "1";
+    } catch (e) {
+      return false;
+    }
+  });
 
-  const refresh = useCallback(() => {
-    api.overview().then(setOverview).catch(() => {});
-    api.queue().then(setQueue).catch(() => {});
-    api.getScored().then(setScored).catch(() => {});
+  function toggleHideScores(v) {
+    setHideScores(v);
+    try {
+      localStorage.setItem("vc_hide_scores", v ? "1" : "0");
+    } catch (e) {}
+  }
+
+  const refresh = useCallback(async () => {
+    const [o, q, sc] = await Promise.allSettled([api.overview(), api.queue(), api.getScored()]);
+    if (o.status === "fulfilled") setOverview(o.value);
+    if (q.status === "fulfilled") setQueue(q.value);
+    if (sc.status === "fulfilled") setScored(sc.value);
+    // Ana veri (overview) alınamıyorsa sunucuya ulaşılamıyor demektir
+    if (o.status === "fulfilled") {
+      setOffline(false);
+      setLastOk(new Date());
+    } else {
+      setOffline(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -143,6 +187,24 @@ function AdminPanel({ onLogout }) {
       setTimeout(() => setBroadcastStatus(null), 3000);
     } catch (e) {
       setBroadcastStatus("Duyuru kaldırılamadı.");
+    }
+  }
+
+  async function saveSessionName() {
+    try {
+      await api.setSession({ name: sessionNameDraft });
+      setSessionNameDraft(null);
+      refresh();
+    } catch (e) {
+      window.alert(e.message || "Oturum adı kaydedilemedi.");
+    }
+  }
+
+  async function handleAnswersCsv() {
+    try {
+      await api.downloadAnswersCsv();
+    } catch (e) {
+      window.alert(e.message || "Dosya indirilemedi.");
     }
   }
 
@@ -182,9 +244,17 @@ function AdminPanel({ onLogout }) {
 
   return (
     <div className="admin-wrap">
+      {offline && (
+        <div style={{ background: "#c62828", color: "#fff", padding: "0.5rem 1.4rem", fontWeight: 700, fontSize: "0.9rem" }}>
+          ⚠ Sunucuya ulaşılamıyor — ekrandaki veriler eski olabilir. Son başarılı güncelleme: {formatClock(lastOk)}
+        </div>
+      )}
       <div className="admin-header">
         <div style={{ fontSize: "0.75rem", letterSpacing: "0.05em", color: "#D4AF37" }}>
           VC DEDEKTİFLERİ 2.0 — ADMİN PANELİ
+          {!offline && lastOk && (
+            <span style={{ marginLeft: 12, color: "#9fb0d8" }}>Son güncelleme: {formatClock(lastOk)}</span>
+          )}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <h1 style={{ color: "#fff", margin: 0, fontSize: "1.4rem" }}>
@@ -262,10 +332,44 @@ function AdminPanel({ onLogout }) {
             <button
               className="btn secondary"
               onClick={handleCsv}
-              style={{ width: "100%", marginBottom: "0.8rem", color: "#101b3d", borderColor: "#101b3d" }}
+              style={{ width: "100%", marginBottom: "0.5rem", color: "#101b3d", borderColor: "#101b3d" }}
             >
               📊 Sonuçları CSV (Excel) İndir
             </button>
+            <button
+              className="btn secondary"
+              onClick={handleAnswersCsv}
+              style={{ width: "100%", marginBottom: "0.8rem", color: "#101b3d", borderColor: "#101b3d" }}
+            >
+              📝 Cevap Detaylarını CSV İndir
+            </button>
+
+            <div style={{ marginBottom: 10 }}>
+              <div className="muted" style={{ fontSize: "0.78rem", marginBottom: 4 }}>Oturum adı</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <input
+                  type="text"
+                  className="answer-input"
+                  style={{ minHeight: "auto", padding: "0.45rem", fontSize: "0.88rem", flex: 1, margin: 0 }}
+                  value={sessionNameDraft ?? overview?.sessionName ?? ""}
+                  maxLength={80}
+                  onChange={(e) => setSessionNameDraft(e.target.value)}
+                />
+                <button
+                  className="btn"
+                  style={{ width: "auto", margin: 0, padding: "0.4em 0.9em", fontSize: "0.8rem" }}
+                  disabled={sessionNameDraft === null || !sessionNameDraft.trim()}
+                  onClick={saveSessionName}
+                >
+                  Kaydet
+                </button>
+              </div>
+            </div>
+
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.88rem", marginBottom: 10 }}>
+              <input type="checkbox" checked={hideScores} onChange={(e) => toggleHideScores(e.target.checked)} />
+              Puanları bu ekranda gizle (projeksiyon)
+            </label>
 
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.88rem", marginBottom: 10 }}>
               <input
@@ -323,7 +427,12 @@ function AdminPanel({ onLogout }) {
         </div>
 
         <div>
-          {top3.length > 0 && (
+          {hideScores && teamsSorted.length > 0 && (
+            <div className="admin-card" style={{ textAlign: "center" }}>
+              <h3 style={{ margin: 0, fontSize: "1rem", color: "var(--navy)" }}>🏆 Sonuçlar finalde açıklanacak</h3>
+            </div>
+          )}
+          {!hideScores && top3.length > 0 && (
             <div className="admin-card">
               <h3 style={{ marginTop: 0, fontSize: "1rem", color: "var(--navy)" }}>🏆 LİDERLİK PODYUMU</h3>
               <div className="podium-container">
@@ -364,7 +473,7 @@ function AdminPanel({ onLogout }) {
             </button>
           </div>
 
-          {tab === "takimlar" && <TeamsTable overview={overview} />}
+          {tab === "takimlar" && <TeamsTable overview={overview} hideScores={hideScores} onChanged={refresh} />}
           {tab === "kuyruk" && <EvaluationQueue queue={queue} onScored={refresh} />}
           {tab === "puanlanan" && <ScoredList scored={scored} onScored={refresh} />}
         </div>
@@ -374,7 +483,11 @@ function AdminPanel({ onLogout }) {
 }
 
 
-function TeamsTable({ overview }) {
+function TeamsTable({ overview, hideScores, onChanged }) {
+  const nowMs = overview?.serverTime ? Date.parse(overview.serverTime) : Date.now();
+  const max = overview?.maxTotalScore || 1200;
+  const teams = overview?.teams || [];
+
   return (
     <div className="admin-card">
       <table className="admin-table">
@@ -384,25 +497,18 @@ function TeamsTable({ overview }) {
             <th>Aşama</th>
             <th>Bölüm</th>
             <th>Mini Vaka</th>
+            <th>Cevap</th>
+            <th>Son Hareket</th>
             <th>Puan</th>
           </tr>
         </thead>
         <tbody>
-          {(overview?.teams || []).map((t) => (
-            <tr key={t.id}>
-              <td>
-                <b>{t.name}</b>
-                {t.members && <div className="muted" style={{ fontSize: "0.78rem" }}>{t.members}</div>}
-              </td>
-              <td>{t.stageLabel}</td>
-              <td>{t.currentBolum}</td>
-              <td>{t.currentMiniVaka}</td>
-              <td style={{ fontWeight: 700 }}>{t.totalScore} / 1200</td>
-            </tr>
+          {teams.map((t) => (
+            <TeamRow key={t.id} t={t} nowMs={nowMs} max={max} hideScores={hideScores} onChanged={onChanged} />
           ))}
-          {(overview?.teams || []).length === 0 && (
+          {teams.length === 0 && (
             <tr>
-              <td colSpan={5} className="muted" style={{ textAlign: "center", padding: "1.5rem" }}>
+              <td colSpan={7} className="muted" style={{ textAlign: "center", padding: "1.5rem" }}>
                 Henüz takım katılmadı. QR kodu paylaşın.
               </td>
             </tr>
@@ -413,7 +519,116 @@ function TeamsTable({ overview }) {
   );
 }
 
+function TeamRow({ t, nowMs, max, hideScores, onChanged }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(t.name);
+  const [members, setMembers] = useState(t.members || "");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const mins = minutesSince(t.updatedAt, nowMs);
+  const finished = t.currentStage === "KAPANIS";
+  const stuck = !finished && mins !== null && mins >= STUCK_MINUTES;
+  const joined = parseUtc(t.createdAt);
+
+  async function save() {
+    setErr(null);
+    try {
+      await api.renameTeam(t.id, name, members);
+      setEditing(false);
+      onChanged();
+    } catch (e) {
+      setErr(e.message || "Kaydedilemedi.");
+    }
+  }
+
+  async function remove() {
+    setErr(null);
+    try {
+      await api.deleteTeam(t.id);
+      onChanged();
+    } catch (e) {
+      setErr(e.message || "Silinemedi.");
+      setConfirmDelete(false);
+    }
+  }
+
+  const linkBtn = { background: "none", border: "none", color: "#101b3d", textDecoration: "underline", cursor: "pointer", fontSize: "0.75rem", padding: 0, marginRight: 10 };
+
+  return (
+    <tr style={stuck ? { background: "#fff4e5" } : undefined}>
+      <td>
+        {editing ? (
+          <div>
+            <input
+              type="text"
+              value={name}
+              maxLength={60}
+              onChange={(e) => setName(e.target.value)}
+              style={{ width: "100%", padding: "0.3em", marginBottom: 4 }}
+              placeholder="Takım adı"
+            />
+            <input
+              type="text"
+              value={members}
+              maxLength={300}
+              onChange={(e) => setMembers(e.target.value)}
+              style={{ width: "100%", padding: "0.3em", marginBottom: 4 }}
+              placeholder="Üyeler"
+            />
+            <button style={linkBtn} disabled={!name.trim()} onClick={save}>Kaydet</button>
+            <button
+              style={linkBtn}
+              onClick={() => {
+                setEditing(false);
+                setName(t.name);
+                setMembers(t.members || "");
+                setErr(null);
+              }}
+            >
+              Vazgeç
+            </button>
+          </div>
+        ) : (
+          <div>
+            <b>{t.name}</b>
+            {t.members && <div className="muted" style={{ fontSize: "0.78rem" }}>{t.members}</div>}
+            <div className="muted" style={{ fontSize: "0.72rem" }}>
+              Katıldı: {joined ? formatClock(joined) : "-"}
+            </div>
+            <div style={{ marginTop: 3 }}>
+              <button style={linkBtn} onClick={() => setEditing(true)}>Düzenle</button>
+              {!confirmDelete ? (
+                <button style={{ ...linkBtn, color: "#c62828" }} onClick={() => setConfirmDelete(true)}>Sil</button>
+              ) : (
+                <span style={{ fontSize: "0.75rem" }}>
+                  Bu takım ve tüm cevapları silinsin mi (yedek alınır)?{" "}
+                  <button style={{ ...linkBtn, color: "#c62828", fontWeight: 700 }} onClick={remove}>Evet, sil</button>
+                  <button style={linkBtn} onClick={() => setConfirmDelete(false)}>Vazgeç</button>
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+        {err && <div style={{ color: "#c62828", fontSize: "0.75rem", fontWeight: 700 }}>{err}</div>}
+      </td>
+      <td>{t.stageLabel}</td>
+      <td>{t.currentBolum}</td>
+      <td>{t.currentMiniVaka}</td>
+      <td>{t.answeredCount} / 9</td>
+      <td style={{ fontSize: "0.82rem", color: stuck ? "#b45309" : undefined, fontWeight: stuck ? 700 : 400 }}>
+        {finished ? "Tamamladı ✔" : mins === null ? "-" : mins === 0 ? "az önce" : `${mins} dk önce`}
+        {stuck && <div>⚠ hareketsiz</div>}
+      </td>
+      <td style={{ fontWeight: 700 }}>{hideScores ? "•••" : `${t.totalScore} / ${max}`}</td>
+    </tr>
+  );
+}
+
 function EvaluationQueue({ queue, onScored }) {
+  const [teamFilter, setTeamFilter] = useState("");
+  const [newestFirst, setNewestFirst] = useState(false);
+
   if (!queue) return <p className="muted">Yükleniyor...</p>;
 
   const nothing =
@@ -421,8 +636,50 @@ function EvaluationQueue({ queue, onScored }) {
     queue.pendingFinalA.length === 0 &&
     queue.anaKanitPending.length === 0;
 
+  const teamNames = [
+    ...new Set(
+      [...queue.pendingAnswers, ...queue.pendingFinalA, ...queue.anaKanitPending].map((i) => i.teamName)
+    )
+  ].sort((a, b) => a.localeCompare(b, "tr"));
+
+  const byTeam = (i) => !teamFilter || i.teamName === teamFilter;
+  const order = (key) => (a, b) =>
+    (newestFirst ? -1 : 1) * String(a[key] || "").localeCompare(String(b[key] || ""));
+
+  const answers = queue.pendingAnswers.filter(byTeam).sort(order("submittedAt"));
+  const finalA = queue.pendingFinalA.filter(byTeam).sort(order("submittedAt"));
+  const anaKanit = queue.anaKanitPending.filter(byTeam).sort(order("revealedAt"));
+
   return (
     <div>
+      {!nothing && (
+        <div className="admin-card" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <label style={{ fontSize: "0.85rem" }}>
+            Takım:{" "}
+            <select value={teamFilter} onChange={(e) => setTeamFilter(e.target.value)} style={{ padding: "0.3em" }}>
+              <option value="">Tümü ({teamNames.length})</option>
+              {teamNames.map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </label>
+          <label style={{ fontSize: "0.85rem" }}>
+            Sıra:{" "}
+            <select
+              value={newestFirst ? "yeni" : "eski"}
+              onChange={(e) => setNewestFirst(e.target.value === "yeni")}
+              style={{ padding: "0.3em" }}
+            >
+              <option value="eski">En çok bekleyen önce</option>
+              <option value="yeni">En yeni önce</option>
+            </select>
+          </label>
+          <span className="muted" style={{ fontSize: "0.8rem" }}>
+            {answers.length + finalA.length + anaKanit.length} öğe gösteriliyor
+          </span>
+        </div>
+      )}
+
       {nothing && (
         <div className="admin-card">
           <p className="muted" style={{ textAlign: "center" }}>
@@ -431,18 +688,18 @@ function EvaluationQueue({ queue, onScored }) {
         </div>
       )}
 
-      {queue.pendingAnswers.map((item) => (
+      {answers.map((item) => (
         <MiniVakaQueueItem key={item.answerId} item={item} onScored={onScored} />
       ))}
 
-      {queue.pendingFinalA.map((item) => (
+      {finalA.map((item) => (
         <FinalAQueueItem key={item.teamId} item={item} onScored={onScored} />
       ))}
 
-      {queue.anaKanitPending.length > 0 && (
+      {anaKanit.length > 0 && (
         <div className="admin-card">
           <h4 style={{ marginTop: 0 }}>Ana Kanıt Sentez Puanları (sözlü, 0-30)</h4>
-          {queue.anaKanitPending.map((item) => (
+          {anaKanit.map((item) => (
             <AnaKanitQueueItem key={item.teamId + item.harf} item={item} onScored={onScored} />
           ))}
         </div>

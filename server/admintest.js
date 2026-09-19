@@ -112,6 +112,34 @@ async function waitUp() {
     assert.strictEqual((await call("GET", "/session")).json.broadcastMessage, null);
     console.log("Duyuru yayınlanıyor ve kaldırılabiliyor. ✔");
 
+    // 7b) Genel bakış yeni alanları içeriyor
+    const ov = await call("GET", "/admin/overview", null, token);
+    assert.strictEqual(ov.json.maxTotalScore, 1200);
+    assert.ok(ov.json.serverTime && ov.json.teams[0].updatedAt, "serverTime/updatedAt eksik");
+    console.log("Genel bakış son hareket ve puan tavanı bilgisini döndürüyor. ✔");
+
+    // 7c) Cevap detayları CSV'si
+    const acsv = await fetch(`${BASE}/admin/export-answers-csv`, { headers: { Authorization: `Bearer ${token}` } });
+    assert.strictEqual(acsv.status, 200);
+    const acsvText = await acsv.text();
+    assert.ok(acsvText.includes("deneme cevabı") && acsvText.includes(";85;100;"), "cevap CSV'sinde cevap/puan yok");
+    assert.strictEqual((await call("GET", "/admin/export-answers-csv")).status, 401);
+    console.log("Cevap detayları CSV'si çalışıyor ve PIN istiyor. ✔");
+
+    // 7d) Takım yeniden adlandırma ve silme
+    const t2 = await call("POST", "/teams", { name: "Silinecek Takım", members: "X" });
+    assert.strictEqual((await call("PUT", `/admin/teams/${t2.json.id}`, { name: "  " }, token)).status, 400);
+    const rn = await call("PUT", `/admin/teams/${t2.json.id}`, { name: "Yeni Ad", members: "Y" }, token);
+    assert.strictEqual(rn.status, 200);
+    assert.strictEqual(rn.json.name, "Yeni Ad");
+    assert.strictEqual((await call("DELETE", `/admin/teams/${t2.json.id}`)).status, 401);
+    const del = await call("DELETE", `/admin/teams/${t2.json.id}`, null, token);
+    assert.strictEqual(del.status, 200);
+    assert.ok(fs.existsSync(path.join(tmp, "backups", del.json.backupFile)), "silme yedeği yok");
+    assert.strictEqual((await call("GET", "/admin/overview", null, token)).json.teamCount, 1);
+    assert.strictEqual((await call("DELETE", `/admin/teams/yok`, null, token)).status, 404);
+    console.log("Takım yeniden adlandırma / yedekli silme çalışıyor. ✔");
+
     // 8) Sıfırlama: onaysız reddedilir, onaylıysa yedek alınıp silinir
     assert.strictEqual((await call("POST", "/admin/reset", {}, token)).status, 400);
     assert.strictEqual((await call("POST", "/admin/reset", { confirm: "sifirla" }, token)).status, 400);

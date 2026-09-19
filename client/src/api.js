@@ -52,6 +52,29 @@ async function request(path, options = {}) {
   return body;
 }
 
+async function downloadFile(path, filename) {
+  const token = adminToken.get();
+  const res = await fetch(BASE + path, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  });
+  if (!res.ok) {
+    if (res.status === 401) {
+      adminToken.clear();
+      window.dispatchEvent(new Event("admin-unauthorized"));
+    }
+    throw new Error("Dosya indirilemedi.");
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export const api = {
   // takımlar
   createTeam: (name, members) =>
@@ -121,29 +144,13 @@ export const api = {
     request(`/admin/reset`, { method: "POST", body: JSON.stringify({ confirm }) }),
   sendBroadcast: (message) =>
     request(`/admin/broadcast`, { method: "POST", body: JSON.stringify({ message }) }),
-  // CSV, Authorization başlığı gerektirdiği için düz link yerine fetch + blob ile indirilir
-  downloadCsv: async () => {
-    const token = adminToken.get();
-    const res = await fetch(`${BASE}/admin/export-csv`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
-    if (!res.ok) {
-      if (res.status === 401) {
-        adminToken.clear();
-        window.dispatchEvent(new Event("admin-unauthorized"));
-      }
-      throw new Error("CSV indirilemedi.");
-    }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "vc_dedektifleri_skor_raporu.csv";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  },
+  // CSV'ler Authorization başlığı gerektirdiği için düz link yerine fetch + blob ile indirilir
+  downloadCsv: () => downloadFile("/admin/export-csv", "vc_dedektifleri_skor_raporu.csv"),
+  downloadAnswersCsv: () =>
+    downloadFile("/admin/export-answers-csv", "vc_dedektifleri_cevap_detaylari.csv"),
+  renameTeam: (id, name, members) =>
+    request(`/admin/teams/${id}`, { method: "PUT", body: JSON.stringify({ name, members }) }),
+  deleteTeam: (id) => request(`/admin/teams/${id}`, { method: "DELETE" }),
 
   // oturum
   getSession: () => request(`/session`),

@@ -24,6 +24,9 @@ function csvCell(value) {
   return `"${v.replace(/"/g, '""')}"`;
 }
 
+// Toplam puan tavanı: 9 mini vaka x100 + 3 ana kanıt x30 + Final A 90 + Son Gece 120
+const MAX_TOTAL_SCORE = 1200;
+
 const STAGE_LABELS = {
   BRIEFING: "Giriş Brifingi",
   OLAY_ANI: "Olay Anı",
@@ -57,7 +60,8 @@ router.get("/overview", (req, res) => {
       currentMiniVaka: t.current_mini_vaka,
       totalScore: t.total_score,
       answeredCount,
-      createdAt: t.created_at
+      createdAt: t.created_at,
+      updatedAt: t.updated_at
     };
   });
 
@@ -65,6 +69,8 @@ router.get("/overview", (req, res) => {
     sessionName: sessionConfig?.session_name || "VC Dedektifleri 2.0",
     finalParcaAEnabled: !!sessionConfig?.final_parca_a_enabled,
     teamCount: teamData.length,
+    maxTotalScore: MAX_TOTAL_SCORE,
+    serverTime: new Date().toISOString(),
     teams: teamData,
     bolumler: BOLUMLER.map((b) => ({ num: b.num, baslik: b.baslik, anaKanit: b.anaKanit }))
   });
@@ -274,6 +280,93 @@ router.get("/export-csv", (req, res) => {
 
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader("Content-Disposition", 'attachment; filename="vc_dedektifleri_skor_raporu.csv"');
+  res.send(csv);
+});
+
+// PUT /api/admin/teams/:id  { name?, members? } — takım adını/üyelerini düzeltir
+router.put("/teams/:id", (req, res) => {
+  const team = db.prepare("SELECT * FROM teams WHERE id = ?").get(req.params.id);
+  if (!team) return res.status(404).json({ error: "Takım bulunamadı." });
+  const { name, members } = req.body || {};
+  let newName = team.name;
+  if (name !== undefined) {
+    newName = String(name).trim().slice(0, 60);
+    if (!newName) return res.status(400).json({ error: "Takım adı boş olamaz." });
+  }
+  const newMembers = members !== undefined ? String(members).trim().slice(0, 300) : team.members;
+  db.prepare("UPDATE teams SET name = ?, members = ?, updated_at = datetime('now') WHERE id = ?").run(
+    newName,
+    newMembers,
+    team.id
+  );
+  res.json({ ok: true, id: team.id, name: newName, members: newMembers });
+});
+
+// DELETE /api/admin/teams/:id — tek bir takımı (ör. yanlış/çift kayıt) tüm ilerlemesiyle siler.
+// Silmeden önce otomatik yedek alınır.
+router.delete("/teams/:id", (req, res) => {
+  const team = db.prepare("SELECT * FROM teams WHERE id = ?").get(req.params.id);
+  if (!team) return res.status(404).json({ error: "Takım bulunamadı." });
+  let backup;
+  try {
+    backup = backupAll("takim-silme");
+  } catch (e) {
+    return res.status(500).json({ error: "Yedek alınamadığı için silme iptal edildi: " + e.message });
+  }
+  db.prepare("DELETE FROM team_answers WHERE team_id = ?").run(team.id);
+  db.prepare("DELETE FROM ana_kanit_progress WHERE team_id = ?").run(team.id);
+  db.prepare("DELETE FROM final_progress WHERE team_id = ?").run(team.id);
+  db.prepare("DELETE FROM son_gece_answers WHERE team_id = ?").run(team.id);
+  db.prepare("DELETE FROM teams WHERE id = ?").run(team.id);
+  res.json({ ok: true, deleted: team.name, backupFile: backup.fileName });
+});
+
+// GET /api/admin/export-answers-csv — her cevabı/puanı tek satırda veren ayrıntılı rapor
+router.get("/export-answers-csv", (req, res) => {
+  const header = ["Takim", "Tur", "Referans", "Baslik", "Cevap", "Puan", "Maks Puan", "Puanlanma Zamani (UTC)"];
+  const rows = [];
+
+  db.prepare(
+    `SELECT t.name AS team, ta.mini_vaka_sira AS sira, ta.answer_text AS text, ta.score, ta.scored_at
+     FROM team_answers ta JOIN teams t ON t.id = ta.team_id
+     ORDER BY t.name COLLATE NOCASE, ta.mini_vaka_sira`
+  )
+    .all()
+    .forEach((r) => {
+      const mv = getMiniVaka(r.sira);
+      rows.push([r.team, "Mini Vaka", `Vaka ${r.sira}`, mv?.baslik || "", r.text, r.score ?? "Bekliyor", 100, r.scored_at || ""]);
+    });
+
+  db.prepare(
+    `SELECT t.name AS team, akp.harf, akp.score, akp.scored_at
+     FROM ana_kanit_progress akp JOIN teams t ON t.id = akp.team_id
+     ORDER BY t.name COLLATE NOCASE, akp.harf`
+  )
+    .all()
+    .forEach((r) => rows.push([r.team, "Ana Kanıt", `Ana Kanıt ${r.harf}`, "", "(sözlü sentez)", r.score ?? "Bekliyor", 30, r.scored_at || ""]));
+
+  db.prepare(
+    `SELECT t.name AS team, fp.parca_a_text AS text, fp.parca_a_score AS score, fp.parca_a_scored_at AS scored_at
+     FROM final_progress fp JOIN teams t ON t.id = fp.team_id
+     WHERE fp.parca_a_text IS NOT NULL ORDER BY t.name COLLATE NOCASE`
+  )
+    .all()
+    .forEach((r) => rows.push([r.team, "Final", "Parça A", "Örüntü Haritası", r.text, r.score ?? "Bekliyor", 90, r.scored_at || ""]));
+
+  db.prepare(
+    `SELECT t.name AS team, sg.score
+     FROM son_gece_answers sg JOIN teams t ON t.id = sg.team_id
+     WHERE sg.submitted_at IS NOT NULL ORDER BY t.name COLLATE NOCASE`
+  )
+    .all()
+    .forEach((r) => rows.push([r.team, "Son Gece", "Üç Yolun Sınavı", "", "(otomatik puanlı)", r.score, 120, ""]));
+
+  let csv = "\uFEFF" + header.join(";") + "\n";
+  rows.forEach((r) => {
+    csv += r.map((c) => (typeof c === "number" ? String(c) : csvCell(c))).join(";") + "\n";
+  });
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", 'attachment; filename="vc_dedektifleri_cevap_detaylari.csv"');
   res.send(csv);
 });
 
