@@ -42,6 +42,21 @@ async function waitUp() {
   throw new Error("Sunucu başlamadı");
 }
 
+// QR adresi: Render'da alan adı (Host başlığı) kullanılmalı, iç ağ IP'si değil
+{
+  const { resolveBaseUrl } = require("./utils/baseUrl");
+  const fakeIp = () => "192.168.1.24";
+  const r = (headers, env = {}, protocol) => resolveBaseUrl({ headers, protocol }, { env, getLocalIp: fakeIp });
+  assert.strictEqual(r({ host: "vc-app.onrender.com", "x-forwarded-proto": "https" }), "https://vc-app.onrender.com");
+  assert.strictEqual(r({ host: "10.0.0.5:10000", "x-forwarded-host": "oyun.firma.com", "x-forwarded-proto": "https,http" }), "https://oyun.firma.com");
+  assert.strictEqual(r({ host: "localhost:3000" }, { PORT: "3000" }), "http://192.168.1.24:3000");
+  assert.strictEqual(r({ host: "127.0.0.1:3000" }, { PORT: "8080" }), "http://192.168.1.24:8080");
+  assert.strictEqual(r({ host: "192.168.1.50:3000" }), "http://192.168.1.50:3000");
+  assert.strictEqual(r({ host: "vc-app.onrender.com" }, { PUBLIC_URL: "https://oyun.sirket.com/" }), "https://oyun.sirket.com");
+  assert.strictEqual(r({ host: "x.onrender.com" }, { PUBLIC_URL: "oyun.sirket.com" }), "https://oyun.sirket.com");
+  console.log("QR adresi Render alan adını / PUBLIC_URL'yi doğru seçiyor. ✔");
+}
+
 (async () => {
   try {
     await waitUp();
