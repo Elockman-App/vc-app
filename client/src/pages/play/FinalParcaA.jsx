@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useGame } from "../../context/GameContext";
 import { api } from "../../api";
+import { useLang } from "../../i18n";
 
 export default function FinalParcaA() {
   const { team, advance } = useGame();
+  const { t } = useLang();
   const [enabled, setEnabled] = useState(null);
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -22,7 +24,7 @@ export default function FinalParcaA() {
           setEnabled(true);
         }
       })
-      .catch((e) => setErr(e.message || "Bağlantı sorunu."));
+      .catch((e) => setErr(e.message || t("net.issue")));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick]);
 
@@ -34,7 +36,7 @@ export default function FinalParcaA() {
       const res = await api.submitParcaA(team.id, text);
       setReveal(res);
     } catch (e) {
-      setErr(e.message || "Gönderilemedi, tekrar deneyin.");
+      setErr(e.message || t("pa.sendFail"));
     } finally {
       setSubmitting(false);
     }
@@ -44,42 +46,42 @@ export default function FinalParcaA() {
     return (
       <div className="screen dark" style={{ padding: "1.4rem 1.1rem", justifyContent: "center", textAlign: "center" }}>
         <p style={{ color: "#ff8080" }}>{err}</p>
-        <button className="btn" onClick={() => setTick((t) => t + 1)}>Tekrar Dene</button>
+        <button className="btn" onClick={() => setTick((t) => t + 1)}>{t("retry")}</button>
       </div>
     );
-  if (enabled === null) return <p className="spinner-text">Yükleniyor...</p>;
+  if (enabled === null) return <p className="spinner-text">{t("loading")}</p>;
 
   return (
     <div className="screen dark" style={{ padding: "1.2rem 1.1rem" }}>
-      <div className="beat-tag">FİNAL — PARÇA A</div>
-      <h2 style={{ fontSize: "1.15rem" }}>Örüntü Haritası</h2>
+      <div className="beat-tag">{t("pa.tag")}</div>
+      <h2 style={{ fontSize: "1.15rem" }}>{t("pa.title")}</h2>
       <p className="karar-question" style={{ fontSize: "1.15rem" }}>
-        İç Denetim'e sunulacak tek cümlelik teşhis nedir?
+        {t("pa.question")}
       </p>
 
       {!reveal ? (
         <>
           <textarea
             className="answer-input"
-            placeholder="Bu şirketin asıl sorunu..."
+            placeholder={t("pa.placeholder")}
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
           {err && <p style={{ color: "#ff8080" }}>{err}</p>}
           <button className="btn" disabled={submitting} onClick={submit}>
-            {submitting ? "Gönderiliyor..." : "Teşhisi Gönder"}
+            {submitting ? t("dec.sending") : t("pa.send")}
           </button>
         </>
       ) : (
         <>
           {reveal.already && (
-            <p className="muted">Bu teşhis daha önce kaydedildi; ilk cevabınız geçerlidir.</p>
+            <p className="muted">{t("pa.already")}</p>
           )}
           <div className="reveal-box">
-            <b>Referans:</b> {reveal.dogruCozumReferansi}
+            <b>{t("pa.ref")}</b> {reveal.dogruCozumReferansi}
           </div>
           <button className="btn" onClick={advance}>
-            Devam Et → Son Gece
+            {t("pa.next")}
           </button>
         </>
       )}

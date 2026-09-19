@@ -2,6 +2,7 @@ const express = require("express");
 const { nanoid } = require("nanoid");
 const db = require("../db");
 const { getBolum } = require("../data/cases");
+const { langOf } = require("../utils/lang");
 const { recomputeTotalScore } = require("../utils/scoring");
 const { requireAdmin } = require("../utils/adminAuth");
 const { parseScore } = require("../utils/parseScore");
@@ -18,7 +19,7 @@ router.post("/:harf/reveal", (req, res) => {
   const team = db.prepare("SELECT * FROM teams WHERE id = ?").get(teamId);
   if (!team) return res.status(404).json({ error: "Takım bulunamadı." });
 
-  const bolum = getBolum(bolumNum);
+  const bolum = getBolum(bolumNum, langOf(req));
   if (!bolum || bolum.anaKanit.harf !== harf) {
     return res.status(400).json({ error: "Bölüm/harf eşleşmiyor." });
   }

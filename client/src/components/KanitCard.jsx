@@ -1,6 +1,9 @@
 import React from "react";
 
+import { useLang } from "../i18n";
+
 export default function KanitCard({ kanit, onInspect }) {
+  const { t } = useLang();
   if (kanit.type === "whatsapp" || kanit.type === "teams") {
     const isWA = kanit.type === "whatsapp";
     return (
@@ -19,7 +22,7 @@ export default function KanitCard({ kanit, onInspect }) {
                 onInspect(kanit);
               }}
             >
-              🔍 Detaylı İncele / Büyüt
+              {t("inspect")}
             </button>
           )}
         </div>
@@ -45,7 +48,7 @@ export default function KanitCard({ kanit, onInspect }) {
               onInspect(kanit);
             }}
           >
-            🔍 Detaylı İncele / Büyüt
+            {t("inspect")}
           </button>
         )}
       </div>
@@ -66,7 +69,7 @@ export default function KanitCard({ kanit, onInspect }) {
               onInspect(kanit);
             }}
           >
-            🔍 Detaylı İncele / Büyüt
+            {t("inspect")}
           </button>
         )}
       </div>

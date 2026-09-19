@@ -1,26 +1,28 @@
 import React from "react";
 import { soundEngine } from "../utils/soundEngine";
+import { useLang } from "../i18n";
 
 const VAKALAR = [
-  { sira: 1, bolum: 1, baslik: "KAYAN AN", icon: "⚠️" },
-  { sira: 2, bolum: 1, baslik: "GÖLGEDEKİ ORTAK", icon: "🤝" },
-  { sira: 3, bolum: 1, baslik: "KIRIK ZİNCİR", icon: "⛓️" },
-  { sira: 4, bolum: 2, baslik: "BU SEFERLİK", icon: "🕒" },
-  { sira: 5, bolum: 2, baslik: "EŞİĞİN ALTINDA", icon: "📉" },
-  { sira: 6, bolum: 2, baslik: "BOŞ SANDALYE", icon: "🪑" },
-  { sira: 7, bolum: 3, baslik: "YANLIŞ İSİM", icon: "📢" },
-  { sira: 8, bolum: 3, baslik: "GÖRÜNMEYEN DURUŞ", icon: "⚙️" },
-  { sira: 9, bolum: 3, baslik: "DUVARIN ÖTESİ", icon: "🏭" }
+  { sira: 1, bolum: 1, icon: "⚠️" },
+  { sira: 2, bolum: 1, icon: "🤝" },
+  { sira: 3, bolum: 1, icon: "⛓️" },
+  { sira: 4, bolum: 2, icon: "🕒" },
+  { sira: 5, bolum: 2, icon: "📉" },
+  { sira: 6, bolum: 2, icon: "🪑" },
+  { sira: 7, bolum: 3, icon: "📢" },
+  { sira: 8, bolum: 3, icon: "⚙️" },
+  { sira: 9, bolum: 3, icon: "🏭" }
 ];
 
 export default function CaseProgressMapModal({ team, onClose }) {
+  const { t } = useLang();
   const currentSira = team?.currentMiniVaka || 1;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="inspector-modal-content map-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">🗺️ VAKA HARİTASI & DEDEKTİF İLERLEMESİ</div>
+          <div className="modal-title">{t("map.title")}</div>
           <button className="modal-close-btn" onClick={onClose}>
             ✕
           </button>
@@ -29,10 +31,10 @@ export default function CaseProgressMapModal({ team, onClose }) {
         <div className="modal-body">
           <div className="map-team-status">
             <span>
-              Takım: <b>{team?.name || "Bilinmiyor"}</b>
+              {t("map.team")} <b>{team?.name || t("map.unknown")}</b>
             </span>
             <span style={{ color: "var(--gold)" }}>
-              Puan: <b>{team?.totalScore || 0} PTS</b>
+              {t("map.score")} <b>{team?.totalScore || 0} PTS</b>
             </span>
           </div>
 
@@ -46,11 +48,11 @@ export default function CaseProgressMapModal({ team, onClose }) {
                   key={v.sira}
                   className={`map-card ${isDone ? "done" : ""} ${isCurrent ? "active" : ""}`}
                 >
-                  <div className="map-card-number">Vaka #{v.sira}</div>
+                  <div className="map-card-number">{t("map.case", { n: v.sira })}</div>
                   <div className="map-card-icon">{v.icon}</div>
-                  <div className="map-card-title">{v.baslik}</div>
+                  <div className="map-card-title">{t("case." + v.sira)}</div>
                   <div className="map-card-badge">
-                    {isDone ? "✅ Tamamlandı" : isCurrent ? "🔍 İnceleniyor" : "🔒 Kilitli"}
+                    {isDone ? t("map.done") : isCurrent ? t("map.current") : t("map.locked")}
                   </div>
                 </div>
               );
@@ -66,7 +68,7 @@ export default function CaseProgressMapModal({ team, onClose }) {
               onClose();
             }}
           >
-            Haritayı Kapat
+            {t("map.close")}
           </button>
         </div>
       </div>

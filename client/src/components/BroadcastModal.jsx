@@ -1,7 +1,9 @@
 import React, { useEffect } from "react";
 import { soundEngine } from "../utils/soundEngine";
+import { useLang } from "../i18n";
 
 export default function BroadcastModal({ message, onClose }) {
+  const { t } = useLang();
   useEffect(() => {
     if (message) {
       soundEngine.playBroadcastSound();
@@ -13,7 +15,7 @@ export default function BroadcastModal({ message, onClose }) {
   return (
     <div className="modal-backdrop broadcast-backdrop" onClick={onClose}>
       <div className="broadcast-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="broadcast-badge">📢 FACILITATOR DUYURUSU</div>
+        <div className="broadcast-badge">{t("bc.badge")}</div>
         <div className="broadcast-text">"{message}"</div>
         <button
           className="btn"
@@ -22,7 +24,7 @@ export default function BroadcastModal({ message, onClose }) {
             onClose();
           }}
         >
-          Anlaşıldı, Devam Et
+          {t("bc.ok")}
         </button>
       </div>
     </div>

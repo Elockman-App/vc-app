@@ -1,29 +1,31 @@
 import React, { useState } from "react";
 import { useGame } from "../../context/GameContext";
 import { api } from "../../api";
+import { useLang } from "../../i18n";
 import CaseTimer from "../../components/CaseTimer";
 import { soundEngine } from "../../utils/soundEngine";
 
 export default function KararAni() {
   const { team, miniVaka, advance } = useGame();
+  const { t } = useLang();
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [reveal, setReveal] = useState(null);
   const [err, setErr] = useState(null);
 
-  if (!miniVaka) return <p className="spinner-text">Yükleniyor...</p>;
+  if (!miniVaka) return <p className="spinner-text">{t("loading")}</p>;
 
   // Cevap kalite metriği (karakter sayısı)
   const charCount = text.trim().length;
   const qualityPercent = Math.min(100, Math.round((charCount / 120) * 100));
   const qualityLabel =
     charCount === 0
-      ? "Henüz yazılmadı"
+      ? t("dec.q0")
       : charCount < 30
-      ? "Kısa Yanıt"
+      ? t("dec.q1")
       : charCount < 80
-      ? "Yeterli Detay"
-      : "Kapsamlı Analiz ✨";
+      ? t("dec.q2")
+      : t("dec.q3");
 
 
   const qualityColor =
@@ -31,7 +33,7 @@ export default function KararAni() {
 
   async function submit() {
     if (!text.trim()) {
-      setErr("Lütfen bir cevap yazın.");
+      setErr(t("dec.needText"));
       return;
     }
     setSubmitting(true);
@@ -41,7 +43,7 @@ export default function KararAni() {
       soundEngine.playSuccessSound();
       setReveal(res);
     } catch (e) {
-      setErr(e.message || "Cevap gönderilemedi.");
+      setErr(e.message || t("dec.sendFail"));
     } finally {
       setSubmitting(false);
     }
@@ -50,7 +52,7 @@ export default function KararAni() {
   return (
     <div className="screen dark" style={{ padding: "1.2rem 1.1rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div className="beat-tag karar">KARAR ANI</div>
+        <div className="beat-tag karar">{t("beat.decision")}</div>
         {!reveal && <CaseTimer durationSeconds={180} />}
       </div>
 
@@ -60,15 +62,15 @@ export default function KararAni() {
         <>
           <textarea
             className="answer-input"
-            placeholder="Takımınızın cevabını buraya yazın..."
+            placeholder={t("dec.placeholder")}
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
 
           <div className="quality-meter">
             <div className="quality-meter-text">
-              <span>Analiz Derinliği: <b style={{ color: qualityColor }}>{qualityLabel}</b></span>
-              <span>{charCount} karakter</span>
+              <span>{t("dec.depth")} <b style={{ color: qualityColor }}>{qualityLabel}</b></span>
+              <span>{t("dec.chars", { n: charCount })}</span>
             </div>
             <div className="quality-meter-bar">
               <div
@@ -80,25 +82,25 @@ export default function KararAni() {
 
           {err && <p style={{ color: "#ff8080" }}>{err}</p>}
           <button className="btn" disabled={submitting} onClick={submit}>
-            {submitting ? "Gönderiliyor..." : "Cevabı Gönder"}
+            {submitting ? t("dec.sending") : t("dec.send")}
           </button>
         </>
       ) : (
         <>
           {reveal.already && (
-            <p className="muted">Bu vaka için cevabınız daha önce kaydedildi; ilk cevabınız geçerlidir.</p>
+            <p className="muted">{t("dec.already")}</p>
           )}
           <div className="reveal-box">
-            <b>Referans Çözüm:</b> {reveal.dogruCozum}
+            <b>{t("dec.ref")}</b> {reveal.dogruCozum}
           </div>
           <div className="reveal-box" style={{ borderLeftColor: "#fff" }}>
-            <b>Final'e Taşınan İçgörü:</b> “{reveal.finalIcgorusu}”
+            <b>{t("dec.insight")}</b> “{reveal.finalIcgorusu}”
           </div>
           <p className="muted" style={{ marginTop: 8 }}>
-            Oyun Yöneticisi puanınızı ayrıca değerlendirecek.
+            {t("dec.gmScores")}
           </p>
           <button className="btn" onClick={advance}>
-            Devam Et →
+            {t("next")}
           </button>
         </>
       )}

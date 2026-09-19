@@ -1,6 +1,7 @@
 const express = require("express");
 const db = require("../db");
-const { FINAL } = require("../data/cases");
+const { FINAL, getFinal } = require("../data/cases");
+const { langOf } = require("../utils/lang");
 const { recomputeTotalScore } = require("../utils/scoring");
 const { requireAdmin } = require("../utils/adminAuth");
 const { parseScore } = require("../utils/parseScore");
@@ -32,7 +33,7 @@ router.post("/unlock", (req, res) => {
      WHERE team_id = ?`
   ).run(teamId);
 
-  res.json({ ok: true, notTam: FINAL.notTam });
+  res.json({ ok: true, notTam: getFinal(langOf(req)).notTam });
 });
 
 // POST /api/final/parca-a   { teamId, text }
@@ -48,14 +49,14 @@ router.post("/parca-a", (req, res) => {
   const prev = db.prepare("SELECT parca_a_text FROM final_progress WHERE team_id = ?").get(teamId);
   if (prev && prev.parca_a_text) {
     // İlk gönderim kalıcıdır (referansı gördükten sonra değiştirilemez)
-    return res.json({ saved: true, already: true, dogruCozumReferansi: FINAL.parcaA.dogruCozumReferansi });
+    return res.json({ saved: true, already: true, dogruCozumReferansi: getFinal(langOf(req)).parcaA.dogruCozumReferansi });
   }
   db.prepare(
     `UPDATE final_progress SET parca_a_text = ?, parca_a_submitted_at = datetime('now')
      WHERE team_id = ?`
   ).run(text.trim().slice(0, 1000), teamId);
 
-  res.json({ saved: true, dogruCozumReferansi: FINAL.parcaA.dogruCozumReferansi });
+  res.json({ saved: true, dogruCozumReferansi: getFinal(langOf(req)).parcaA.dogruCozumReferansi });
 });
 
 // GET /api/final/:teamId  — bir takımın Final ilerlemesi

@@ -19,6 +19,8 @@ import { soundEngine } from "../utils/soundEngine";
 import CaseProgressMapModal from "../components/CaseProgressMapModal";
 import BroadcastModal from "../components/BroadcastModal";
 import { api } from "../api";
+import { useLang } from "../i18n";
+import LangSwitch from "../components/LangSwitch";
 
 const STAGE_COMPONENTS = {
   BRIEFING: Briefing,
@@ -37,6 +39,7 @@ const STAGE_COMPONENTS = {
 
 export default function Play() {
   const { team, loading, netDown, teamMissing } = useGame();
+  const { t } = useLang();
   const [muted, setMuted] = useState(soundEngine.isMuted());
   const [showMap, setShowMap] = useState(false);
   const [broadcastMsg, setBroadcastMsg] = useState(null);
@@ -68,9 +71,7 @@ export default function Play() {
   if (loading) {
     return (
       <p className="spinner-text">
-        {netDown
-          ? "Sunucuya bağlanılıyor... İlk açılış bir dakikaya kadar sürebilir, lütfen sayfayı kapatmayın."
-          : "Yükleniyor..."}
+        {netDown ? t("connecting") : t("loading")}
       </p>
     );
   }
@@ -102,17 +103,18 @@ export default function Play() {
             fontWeight: 700
           }}
         >
-          Bağlantı kesildi, yeniden bağlanılıyor... Cevabınız kaybolmaz, sayfayı kapatmayın.
+          {t("netBanner")}
         </div>
       )}
       <div className="top-bar">
         <span>👥 {team.name}</span>
 
         <div className="top-bar-controls">
-          <button className="icon-btn" onClick={() => setShowMap(true)} title="Vaka Haritası">
-            🗺️ Harita
+          <LangSwitch />
+          <button className="icon-btn" onClick={() => setShowMap(true)} title={t("mapTitle")}>
+            🗺️ {t("map")}
           </button>
-          <button className="icon-btn" onClick={toggleSound} title="Ses Aç / Kapa">
+          <button className="icon-btn" onClick={toggleSound} title={t("soundTitle")}>
             {muted ? "🔇" : "🔊"}
           </button>
           <span className="score">{team.totalScore} PTS</span>

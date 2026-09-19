@@ -588,3 +588,26 @@ table.admin-table td { padding: 0.6em; border-bottom: 1px solid #f0f0f0; vertica
   .tabs { flex-wrap: wrap; }
   .podium-container { gap: 0.4rem; }
 }
+
+/* Dil seçici (TR / EN) */
+.lang-switch {
+  display: inline-flex;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.lang-btn {
+  background: transparent;
+  color: #fff;
+  border: 0;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.lang-btn.active {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+  opacity: 1;
+}

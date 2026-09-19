@@ -2,12 +2,13 @@ const express = require("express");
 const { nanoid } = require("nanoid");
 const db = require("../db");
 const { getMiniVaka, getBolumByMiniVaka, listMiniVakaMeta } = require("../data/cases");
+const { langOf } = require("../utils/lang");
 
 const router = express.Router();
 
 // GET /api/mini-vaka  — 9 vakanın kısa listesi (Son Gece eşleştirme ekranı için)
 router.get("/", (req, res) => {
-  res.json(listMiniVakaMeta());
+  res.json(listMiniVakaMeta(langOf(req)));
 });
 
 /**
@@ -23,15 +24,16 @@ function publicMiniVaka(mv) {
 
 // GET /api/mini-vaka/:sira
 router.get("/:sira", (req, res) => {
-  const mv = getMiniVaka(req.params.sira);
+  const lang = langOf(req);
+  const mv = getMiniVaka(req.params.sira, lang);
   if (!mv) return res.status(404).json({ error: "Mini vaka bulunamadı." });
-  const bolum = getBolumByMiniVaka(req.params.sira);
+  const bolum = getBolumByMiniVaka(req.params.sira, lang);
   res.json({ ...publicMiniVaka(mv), bolumBaslik: bolum?.baslik, bolumAccent: bolum?.accent });
 });
 
 // POST /api/mini-vaka/:sira/answer   { teamId, answerText }
 router.post("/:sira/answer", (req, res) => {
-  const mv = getMiniVaka(req.params.sira);
+  const mv = getMiniVaka(req.params.sira, langOf(req));
   if (!mv) return res.status(404).json({ error: "Mini vaka bulunamadı." });
 
   const { teamId, answerText } = req.body || {};

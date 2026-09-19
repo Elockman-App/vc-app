@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { useGame } from "../../context/GameContext";
+import { useLang } from "../../i18n";
+import LangSwitch from "../../components/LangSwitch";
 
 export default function TeamCreate() {
   const { createTeam } = useGame();
+  const { t } = useLang();
   const [name, setName] = useState("");
   const [members, setMembers] = useState("");
   const [busy, setBusy] = useState(false);
@@ -11,7 +14,7 @@ export default function TeamCreate() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!name.trim()) {
-      setErr("Lütfen bir takım adı girin.");
+      setErr(t("team.needName"));
       return;
     }
     setBusy(true);
@@ -19,7 +22,7 @@ export default function TeamCreate() {
     try {
       await createTeam(name, members);
     } catch (e2) {
-      setErr(e2.message || "Takım oluşturulamadı.");
+      setErr(e2.message || t("team.failed"));
     } finally {
       setBusy(false);
     }
@@ -30,33 +33,34 @@ export default function TeamCreate() {
       <div className="center-screen">
         <div style={{ maxWidth: 420, width: "100%" }}>
           <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-            <div className="divider-eyebrow">PROJE AYNA</div>
-            <h1 style={{ fontSize: "1.7rem" }}>VC Dedektifleri 2.0</h1>
-            <p className="muted">Dedektif ekibinin adını gir, soruşturmaya başlayalım.</p>
+            <LangSwitch style={{ marginBottom: "1rem" }} />
+            <div className="divider-eyebrow">{t("team.eyebrow")}</div>
+            <h1 style={{ fontSize: "1.7rem" }}>{t("team.title")}</h1>
+            <p className="muted">{t("team.sub")}</p>
           </div>
           <form onSubmit={handleSubmit} className="card-dark">
             <div className="form-field">
-              <label>Takım Adı</label>
+              <label>{t("team.name")}</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Örn: Sarı Bariyer Ekibi"
+                placeholder={t("team.namePh")}
                 maxLength={60}
                 autoFocus
               />
             </div>
             <div className="form-field">
-              <label>Takım Üyeleri (opsiyonel)</label>
+              <label>{t("team.members")}</label>
               <input
                 value={members}
                 onChange={(e) => setMembers(e.target.value)}
-                placeholder="Örn: Ayşe, Mehmet, Can"
+                placeholder={t("team.membersPh")}
                 maxLength={300}
               />
             </div>
             {err && <p style={{ color: "#ff8080", fontSize: "0.9rem" }}>{err}</p>}
             <button className="btn" type="submit" disabled={busy}>
-              {busy ? "Oluşturuluyor..." : "Soruşturmaya Başla"}
+              {busy ? t("team.creating") : t("team.start")}
             </button>
           </form>
         </div>

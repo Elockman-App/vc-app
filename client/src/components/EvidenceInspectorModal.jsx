@@ -1,7 +1,9 @@
 import React, { useEffect } from "react";
 import { soundEngine } from "../utils/soundEngine";
+import { useLang } from "../i18n";
 
 export default function EvidenceInspectorModal({ kanit, onClose }) {
+  const { t } = useLang();
   useEffect(() => {
     soundEngine.playCardOpenSound();
     const handleKeyDown = (e) => {
@@ -18,7 +20,7 @@ export default function EvidenceInspectorModal({ kanit, onClose }) {
       <div className="inspector-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">
-            🔍 DETAYLI KANIT İNCELEMESİ — {kanit.baslik || "KANIT"}
+            {t("ev.title", { t: kanit.baslik || t("ev.fallback") })}
           </div>
           <button className="modal-close-btn" onClick={onClose}>
             ✕
@@ -61,7 +63,7 @@ export default function EvidenceInspectorModal({ kanit, onClose }) {
 
         <div className="modal-footer">
           <button className="btn secondary" onClick={onClose}>
-            İncelemeyi Kapat
+            {t("ev.close")}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { api } from "../api";
+import { useLang } from "../i18n";
 
 const GameContext = createContext(null);
 const STORAGE_KEY = "vc2_team_id";
@@ -65,6 +66,7 @@ export function GameProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [netDown, setNetDown] = useState(false);
   const [teamMissing, setTeamMissing] = useState(false);
+  const { lang } = useLang();
 
   // Son bilinen takım durumunu sürekli sakla
   useEffect(() => {
@@ -105,6 +107,18 @@ export function GameProvider({ children }) {
       setMiniVaka(null);
     }
   }, []);
+
+  // Oyuncu dili değiştirirse ekrandaki vaka metnini yeni dilde yeniden yükle
+  const teamRef = React.useRef(null);
+  teamRef.current = team;
+  const firstLang = React.useRef(true);
+  useEffect(() => {
+    if (firstLang.current) {
+      firstLang.current = false;
+      return;
+    }
+    if (teamRef.current) loadMiniVakaIfNeeded(teamRef.current).catch(() => {});
+  }, [lang, loadMiniVakaIfNeeded]);
 
   const loadTeam = useCallback(
     async (teamId) => {

@@ -293,17 +293,29 @@ const FINAL = {
 // YARDIMCI FONKSİYONLAR
 // ---------------------------------------------------------------------------
 
-function getMiniVaka(sira) {
-  return MINI_VAKALAR.find((mv) => mv.sira === Number(sira)) || null;
+// İngilizce çeviri (cases.en.js) Türkçe verinin üzerine bindirilir.
+const EN = require("./cases.en")(BOLUMLER, MINI_VAKALAR, FINAL);
+
+/** Dile göre veri seti: "en" ise İngilizce, aksi halde Türkçe. */
+function dataFor(lang) {
+  return lang === "en" ? EN : { BOLUMLER, MINI_VAKALAR, FINAL };
 }
 
-function getBolum(num) {
-  return BOLUMLER.find((b) => b.num === Number(num)) || null;
+function getFinal(lang) {
+  return dataFor(lang).FINAL;
 }
 
-function getBolumByMiniVaka(sira) {
-  const mv = getMiniVaka(sira);
-  return mv ? getBolum(mv.bolum) : null;
+function getMiniVaka(sira, lang) {
+  return dataFor(lang).MINI_VAKALAR.find((mv) => mv.sira === Number(sira)) || null;
+}
+
+function getBolum(num, lang) {
+  return dataFor(lang).BOLUMLER.find((b) => b.num === Number(num)) || null;
+}
+
+function getBolumByMiniVaka(sira, lang) {
+  const mv = getMiniVaka(sira, lang);
+  return mv ? getBolum(mv.bolum, lang) : null;
 }
 
 /**
@@ -312,8 +324,8 @@ function getBolumByMiniVaka(sira) {
  * bu fonksiyonun dışında (server/routes/miniVaka.js'te) filtrelenir; bu dosya
  * sadece ham veriyi tutar, sızdırma kararı route katmanına aittir (bkz. Plan §3).
  */
-function listMiniVakaMeta() {
-  return MINI_VAKALAR.map((mv) => ({
+function listMiniVakaMeta(lang) {
+  return dataFor(lang).MINI_VAKALAR.map((mv) => ({
     sira: mv.sira,
     bolum: mv.bolum,
     baslik: mv.baslik
@@ -324,6 +336,7 @@ module.exports = {
   BOLUMLER,
   MINI_VAKALAR,
   FINAL,
+  getFinal,
   getMiniVaka,
   getBolum,
   getBolumByMiniVaka,

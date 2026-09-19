@@ -2,10 +2,12 @@ import React from "react";
 import { useGame } from "../../context/GameContext";
 import BolumTheme from "../../components/BolumTheme";
 import { getBolumMeta } from "../../data/bolumler";
+import { useLang } from "../../i18n";
 
 export default function BolumAyirici() {
   const { team, advance } = useGame();
-  const meta = getBolumMeta(team.currentBolum);
+  const { t, lang } = useLang();
+  const meta = getBolumMeta(team.currentBolum, lang);
 
   return (
     <BolumTheme accentHex={meta.accent}>
@@ -14,7 +16,7 @@ export default function BolumAyirici() {
         <div className="hero-scrim" />
         <div className="hero-content">
           <div className="divider-eyebrow" style={{ color: "var(--accent)" }}>
-            BÖLÜM {meta.num}
+            {t("chapter", { n: meta.num })}
           </div>
           <h1 style={{ fontSize: "2rem", marginBottom: "0.8rem" }}>{meta.baslik}</h1>
           <div style={{ marginBottom: "1.2rem" }}>
@@ -28,7 +30,7 @@ export default function BolumAyirici() {
             “{meta.facilitatorAcilis}”
           </p>
           <button className="btn" style={{ background: "var(--accent)" }} onClick={advance}>
-            Devam Et →
+            {t("next")}
           </button>
         </div>
       </div>

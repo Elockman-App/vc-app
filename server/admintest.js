@@ -253,6 +253,30 @@ async function waitUp() {
     assert.ok(s2.json.already && s2.json.score === 0, "Son Gece tekrar denenememeli");
     console.log("İlk cevap kilidi (mini vaka, parça A, son gece) çalışıyor. ✔");
 
+    // 8c) İngilizce içerik (?lang=en) — metinler değişir, kodlar/puanlama aynı kalır
+    const mvTr = (await call("GET", "/mini-vaka/1")).json;
+    const mvEn = (await call("GET", "/mini-vaka/1?lang=en")).json;
+    assert.strictEqual(mvTr.baslik, "KAYAN AN");
+    assert.strictEqual(mvEn.baslik, "THE SLIPPERY MOMENT");
+    assert.ok(!("dogruCozum" in mvEn), "İngilizce vakada da cevap anahtarı sızmamalı");
+    assert.strictEqual(mvEn.heroGorsel, mvTr.heroGorsel);
+    const metaEn = (await call("GET", "/mini-vaka?lang=en")).json;
+    assert.strictEqual(metaEn.length, 9);
+    const enTeam = (await call("POST", "/teams", { name: "EN Takımı" })).json;
+    const kEn = (await call("POST", "/ana-kanit/A/reveal?lang=en", { teamId: enTeam.id, bolumNum: 1 })).json;
+    assert.strictEqual(kEn.kod, "471");
+    assert.ok(/Nobody/.test(kEn.notParcasi));
+    const ulEn = (await call("POST", "/final/unlock?lang=en", { teamId: enTeam.id, code: "471-295-836" })).json;
+    assert.ok(/Nobody/.test(ulEn.notTam[0]));
+    const sgEn = (await call("GET", "/son-gece?lang=en")).json;
+    assert.ok(/Our Way/.test(sgEn.ucYolSinavi[0].yolculuk));
+    assert.ok(!JSON.stringify(sgEn).includes("dogruMiniVaka"), "Son Gece verisinde cevap sızmamalı");
+    const sEn = (await call("POST", "/son-gece/sentez?lang=en", { teamId: enTeam.id, satir1: 3, satir2: 6, satir3: 8 })).json;
+    assert.strictEqual(sEn.score, 120, "İngilizce de aynı doğru cevaplarla puanlanmalı");
+    assert.strictEqual(sEn.detay[0].dogruMiniVakaBaslik, "THE BROKEN CHAIN");
+    assert.strictEqual((await call("GET", "/mini-vaka/1?lang=xx")).json.baslik, "KAYAN AN", "bilinmeyen dil Türkçe'ye düşmeli");
+    console.log("İngilizce içerik (vaka, kod, Son Gece) doğru geliyor, puanlama dilden bağımsız. ✔");
+
     // 9) Kaba kuvvet sınırı
     let locked = false;
     for (let i = 0; i < 8; i++) {

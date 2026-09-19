@@ -1,3 +1,5 @@
+import { getLang, translate } from "./i18n";
+
 const BASE = "/api";
 
 // ---- Admin oturum token'ı (PIN ile giriş) ----
@@ -31,8 +33,10 @@ const emit = (name) => window.dispatchEvent(new Event(name));
 async function request(path, options = {}) {
   const token = adminToken.get();
   let res;
+  // Oyuncu ekranı için seçili dil her isteğe eklenir (sunucu vaka metinlerini bu dile göre yollar)
+  const withLang = path + (path.includes("?") ? "&" : "?") + "lang=" + getLang();
   try {
-    res = await fetch(BASE + path, {
+    res = await fetch(BASE + withLang, {
       ...options,
       headers: {
         "Content-Type": "application/json",
@@ -43,7 +47,7 @@ async function request(path, options = {}) {
   } catch (e) {
     // İnternet yok ya da sunucu (Render) uykudan uyanıyor
     emit("vc-net-down");
-    const err = new Error("Sunucuya bağlanılamadı. Bağlantınızı kontrol edin.");
+    const err = new Error(translate(getLang(), "net.fail"));
     err.network = true;
     throw err;
   }
@@ -58,8 +62,8 @@ async function request(path, options = {}) {
     window.dispatchEvent(new Event("admin-unauthorized"));
   }
   if (!res.ok) {
-    const message = (isJson && body && body.error) || "Bir hata oluştu.";
-    const err = new Error(gateway ? "Sunucu şu an yanıt vermiyor, yeniden deneniyor." : message);
+    const message = (isJson && body && body.error) || translate(getLang(), "net.error");
+    const err = new Error(gateway ? translate(getLang(), "net.gateway") : message);
     err.status = res.status;
     err.body = body;
     err.network = gateway;

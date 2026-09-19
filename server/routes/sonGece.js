@@ -1,12 +1,14 @@
 const express = require("express");
 const db = require("../db");
-const { FINAL } = require("../data/cases");
+const { FINAL, getFinal } = require("../data/cases");
+const { langOf } = require("../utils/lang");
 const { recomputeTotalScore } = require("../utils/scoring");
 
 const router = express.Router();
 
 // GET /api/son-gece  — sahne verisi (zaman çizelgesi + kanıtlar + boş sınav satırları)
 router.get("/", (req, res) => {
+  const FINAL = getFinal(langOf(req));
   res.json({
     lokasyon: FINAL.sonGece.lokasyon,
     zamanCizelgesi: FINAL.sonGece.zamanCizelgesi,
@@ -24,6 +26,7 @@ router.post("/sentez", (req, res) => {
   const team = db.prepare("SELECT * FROM teams WHERE id = ?").get(teamId);
   if (!team) return res.status(404).json({ error: "Takım bulunamadı." });
 
+  const FINAL_L = getFinal(langOf(req));
   const dogrular = FINAL.sonGece.ucYolSinavi.map((r) => r.dogruMiniVakaSira);
 
   // İlk gönderim kalıcıdır: doğru cevapları gördükten sonra tekrar denenemez.
@@ -34,7 +37,7 @@ router.post("/sentez", (req, res) => {
     : [Number(satir1), Number(satir2), Number(satir3)];
 
   let score = 0;
-  const detay = FINAL.sonGece.ucYolSinavi.map((r, i) => {
+  const detay = FINAL_L.sonGece.ucYolSinavi.map((r, i) => {
     const correct = cevaplar[i] === dogrular[i];
     if (correct) score += 40;
     return {

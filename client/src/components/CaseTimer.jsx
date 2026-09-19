@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { soundEngine } from "../utils/soundEngine";
+import { useLang } from "../i18n";
 
 export default function CaseTimer({ durationSeconds = 180 }) {
+  const { t } = useLang();
   const [secondsLeft, setSecondsLeft] = useState(durationSeconds);
   const [isUrgent, setIsUrgent] = useState(false);
 
@@ -33,7 +35,7 @@ export default function CaseTimer({ durationSeconds = 180 }) {
   return (
     <div className={`case-timer-box ${isUrgent ? "urgent" : ""}`}>
       <span className="timer-icon">⏱️</span>
-      <span className="timer-value">{secondsLeft > 0 ? formatted : "00:00 — Süre Doldu"}</span>
+      <span className="timer-value">{secondsLeft > 0 ? formatted : t("timer.up")}</span>
     </div>
   );
 }

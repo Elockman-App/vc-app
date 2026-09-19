@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useGame } from "../../context/GameContext";
 import { api } from "../../api";
+import { useLang } from "../../i18n";
 
 export default function Kapanis() {
   const { team } = useGame();
+  const { t } = useLang();
   const [fresh, setFresh] = useState(team);
 
   useEffect(() => {
@@ -18,24 +20,23 @@ export default function Kapanis() {
       <div className="hero-bg" style={{ backgroundImage: "url(/images/kapanis.jpg)" }} />
       <div className="hero-scrim" />
       <div className="hero-content" style={{ justifyContent: "center", textAlign: "center" }}>
-        <div className="divider-eyebrow">KAPANIŞ</div>
+        <div className="divider-eyebrow">{t("end.eyebrow")}</div>
         <p style={{ fontStyle: "italic", fontFamily: "Cambria, Georgia, serif", lineHeight: 1.5 }}>
-          “Bu dokuz dosyada tek bir kötü niyetli insan yoktu. Sadece dokuz farklı an, aynı boşluğu
-          gösteriyordu. Son Gece bize bunun tersinin de mümkün olduğunu gösterdi.”
+          “{t("end.quote")}”
         </p>
         <h2 style={{ color: "var(--gold)", fontSize: "1.2rem", marginTop: "1.2rem" }}>
-          Yarın, sizin sahanızda birisi küçük bir sinyal gördüğünde, bu şirket onu duyacak mı?
+          {t("end.question")}
         </h2>
 
         <div className="card-dark" style={{ marginTop: "1.5rem" }}>
-          <div className="muted">TAKIM PUANINIZ (canlı güncellenir)</div>
+          <div className="muted">{t("end.score")}</div>
           <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--gold)" }}>
             {fresh?.totalScore ?? team.totalScore}
           </div>
           <div className="muted">/ 1200</div>
         </div>
         <p className="muted" style={{ marginTop: "1rem" }}>
-          Oyun Yöneticisi kazanan takımı açıklayacak. 🏆
+          {t("end.gm")}
         </p>
       </div>
     </div>

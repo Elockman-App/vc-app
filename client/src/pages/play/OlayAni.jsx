@@ -2,12 +2,14 @@ import React from "react";
 import { useGame } from "../../context/GameContext";
 import SpeechBubble from "../../components/SpeechBubble";
 import { getBolumMeta } from "../../data/bolumler";
+import { useLang } from "../../i18n";
 
 export default function OlayAni() {
   const { team, miniVaka, advance } = useGame();
+  const { t, lang } = useLang();
 
-  if (!miniVaka) return <p className="spinner-text">Yükleniyor...</p>;
-  const meta = getBolumMeta(team.currentBolum);
+  if (!miniVaka) return <p className="spinner-text">{t("loading")}</p>;
+  const meta = getBolumMeta(team.currentBolum, lang);
   const heroUrl = `/images/${miniVaka.heroGorsel}`;
 
   return (
@@ -15,9 +17,9 @@ export default function OlayAni() {
       <div className="hero-bg" style={{ backgroundImage: `url(${heroUrl})` }} />
       <div className="hero-scrim" />
       <div className="hero-content">
-        <div className="beat-tag">OLAY ANI</div>
+        <div className="beat-tag">{t("beat.event")}</div>
         <div className="doc-caption">
-          Mini Vaka {miniVaka.sira} — {miniVaka.baslik}
+          {t("miniCase", { n: miniVaka.sira, title: miniVaka.baslik })}
         </div>
 
         <div style={{ flex: 1 }} />
@@ -26,7 +28,7 @@ export default function OlayAni() {
         <SpeechBubble text={miniVaka.olayAni.balonlar[1]} align="right" />
 
         <button className="btn" onClick={advance}>
-          Devam Et → Kanıt Anı
+          {t("event.next")}
         </button>
       </div>
     </div>

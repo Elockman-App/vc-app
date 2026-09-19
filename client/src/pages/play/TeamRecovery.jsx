@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useGame } from "../../context/GameContext";
+import { useLang } from "../../i18n";
+import LangSwitch from "../../components/LangSwitch";
 
 /**
  * Sunucu yeniden başlatıldığında veya facilitator oturumu sıfırladığında gösterilir:
@@ -7,6 +9,7 @@ import { useGame } from "../../context/GameContext";
  */
 export default function TeamRecovery() {
   const { restoreTeam, resumeIfExists, startFresh } = useGame();
+  const { t } = useLang();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
 
@@ -25,7 +28,7 @@ export default function TeamRecovery() {
       const t = await restoreTeam();
       if (!t) startFresh(); // kayıtlı bilgi yoksa yeni takım ekranına düş
     } catch (e) {
-      setErr(e.message || "Takım geri yüklenemedi, tekrar deneyin.");
+      setErr(e.message || t("rec.failed"));
     } finally {
       setBusy(false);
     }
@@ -36,24 +39,22 @@ export default function TeamRecovery() {
       <div className="center-screen">
         <div style={{ maxWidth: 420, width: "100%" }}>
           <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-            <div className="divider-eyebrow">BİLGİLENDİRME</div>
-            <h1 style={{ fontSize: "1.5rem" }}>Oturum yenilendi</h1>
+            <LangSwitch style={{ marginBottom: "1rem" }} />
+            <div className="divider-eyebrow">{t("rec.eyebrow")}</div>
+            <h1 style={{ fontSize: "1.5rem" }}>{t("rec.title")}</h1>
+            <p className="muted">{t("rec.p1")}</p>
             <p className="muted">
-              Sunucu yeniden başlatılmış ya da oturum sıfırlanmış olabilir, takım kaydınız bulunamıyor.
-            </p>
-            <p className="muted">
-              <b>Oyun yöneticisi verileri geri yüklüyorsa bu ekranda birkaç saniye bekleyin</b>, kendiliğinden
-              kaldığınız yerden devam edeceksiniz. Beklemek istemezseniz aşağıdaki düğmeyi kullanın; bu durumda
-              puanlarınız sıfırdan başlar, oyun yöneticisine bildirin.
+              <b>{t("rec.p2a")}</b>
+              {t("rec.p2b")}
             </p>
           </div>
           <div className="card-dark">
             {err && <p style={{ color: "#ff8080", fontSize: "0.9rem" }}>{err}</p>}
             <button className="btn" onClick={handleRestore} disabled={busy}>
-              {busy ? "Geri yükleniyor..." : "Beklemeden yeni kayıtla devam et"}
+              {busy ? t("rec.restoring") : t("rec.restore")}
             </button>
             <button className="btn secondary" style={{ marginTop: "0.6rem" }} onClick={startFresh} disabled={busy}>
-              Yeni takımla başla
+              {t("rec.fresh")}
             </button>
           </div>
         </div>
