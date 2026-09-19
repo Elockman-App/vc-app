@@ -566,3 +566,25 @@ table.admin-table td { padding: 0.6em; border-bottom: 1px solid #f0f0f0; vertica
 .podium-name { font-weight: 700; font-size: 0.95rem; margin: 0.3rem 0; }
 .podium-score { font-weight: 800; color: var(--navy); font-size: 1.1rem; }
 
+
+
+/* ---- Admin: ek bileşenler ---- */
+.admin-banner { background: #fff4cf; color: #5c4400; padding: 0.6rem 1.4rem; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; font-size: 0.9rem; border-bottom: 2px solid #D4AF37; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll table.admin-table { min-width: 640px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0.8rem; }
+.chip { font-size: 0.78rem; padding: 0.25em 0.7em; border-radius: 999px; background: #f0f0f0; color: #888; }
+.chip.on { background: var(--navy); color: #fff; }
+.progress-track { height: 6px; background: #e8e8e8; border-radius: 999px; margin-top: 5px; overflow: hidden; min-width: 90px; }
+.progress-fill { height: 100%; background: #D4AF37; border-radius: 999px; transition: width 0.4s ease; }
+.progress-fill.done { background: #22c55e; }
+.progress-fill.stuck { background: #f59e0b; }
+
+@media (max-width: 700px) {
+  .admin-header { padding: 0.8rem 1rem; }
+  .admin-grid { padding: 0.6rem; gap: 0.8rem; }
+  .admin-banner { padding: 0.6rem 1rem; }
+  .score-input-row { flex-wrap: wrap; }
+  .tabs { flex-wrap: wrap; }
+  .podium-container { gap: 0.4rem; }
+}

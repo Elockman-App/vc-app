@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.set("trust proxy", 1);
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "5mb" })); // yedek geri yükleme dosyaları için
 
 // ---- API rotaları ----
 app.use("/api/teams", require("./routes/teams"));

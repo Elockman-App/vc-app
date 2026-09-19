@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { api, adminToken } from "../api";
 
 export default function AdminDashboard() {
@@ -52,6 +52,109 @@ function formatClock(d) {
 }
 
 const STUCK_MINUTES = 10;
+
+// ---- Yeni cevap sesi ----
+let audioCtx = null;
+function playBeep() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    audioCtx = audioCtx || new AC();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    [880, 1175].forEach((freq, i) => {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      const t0 = audioCtx.currentTime + i * 0.16;
+      o.type = "sine";
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.start(t0);
+      o.stop(t0 + 0.15);
+    });
+  } catch (e) {}
+}
+
+// ---- Yedek: panel, son yedeği tarayıcıda saklar (sunucu ücretsiz planda veri kaybedebilir) ----
+const BACKUP_LS = "vc_admin_last_backup";
+
+function readStoredBackup() {
+  try {
+    return JSON.parse(localStorage.getItem(BACKUP_LS) || "null");
+  } catch (e) {
+    return null;
+  }
+}
+
+function storeBackup(dump) {
+  try {
+    if (dump && dump.tables && dump.tables.teams.length > 0) {
+      localStorage.setItem(
+        BACKUP_LS,
+        JSON.stringify({ savedAt: Date.now(), teamCount: dump.tables.teams.length, dump })
+      );
+    } else {
+      localStorage.removeItem(BACKUP_LS);
+    }
+  } catch (e) {}
+}
+
+function clearStoredBackup() {
+  try {
+    localStorage.removeItem(BACKUP_LS);
+  } catch (e) {}
+}
+
+function saveJsonFile(obj, fileName) {
+  const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// ---- İlerleme: oyun 35 adım (3 bölüm x 10 adım + Final/Son Gece 5 adım) ----
+const PROGRESS_TOTAL = 35;
+const FINAL_STEPS = {
+  FINAL_KILIT: 30,
+  FINAL_PARCA_A: 31,
+  SON_GECE_ACILIS: 32,
+  SON_GECE_KANIT: 33,
+  SON_GECE_SENTEZ: 34,
+  KAPANIS: 35
+};
+
+function progressPercent(t) {
+  const st = t.currentStage;
+  if (st in FINAL_STEPS) return Math.round((FINAL_STEPS[st] / PROGRESS_TOTAL) * 100);
+  if (st === "BRIEFING") return 0;
+  const base = ((t.currentBolum || 1) - 1) * 10;
+  const k = ((t.currentMiniVaka || 1) - 1) % 3;
+  let within = 0;
+  if (st === "OLAY_ANI") within = k * 3;
+  else if (st === "KANIT_ANI") within = k * 3 + 1;
+  else if (st === "KARAR_ANI") within = k * 3 + 2;
+  else if (st === "ANA_KANIT") within = 9;
+  return Math.min(100, Math.round(((base + within) / PROGRESS_TOTAL) * 100));
+}
+
+const GROUPS = ["Brifing", "Bölüm 1", "Bölüm 2", "Bölüm 3", "Final", "Son Gece", "Tamamladı"];
+
+function stageGroup(t) {
+  const st = t.currentStage;
+  if (st === "BRIEFING") return "Brifing";
+  if (st === "KAPANIS") return "Tamamladı";
+  if (st.startsWith("FINAL")) return "Final";
+  if (st.startsWith("SON_GECE")) return "Son Gece";
+  return `Bölüm ${t.currentBolum || 1}`;
+}
 
 function AdminLogin({ onLoggedIn }) {
   const [pin, setPin] = useState("");
@@ -127,6 +230,18 @@ function AdminPanel({ onLogout }) {
   const [offline, setOffline] = useState(false);
   const [lastOk, setLastOk] = useState(null);
   const [sessionNameDraft, setSessionNameDraft] = useState(null);
+  const [storedBackup, setStoredBackup] = useState(() => readStoredBackup());
+  const [restoreMsg, setRestoreMsg] = useState(null);
+  const [soundOn, setSoundOn] = useState(() => {
+    try {
+      return localStorage.getItem("vc_admin_sound") !== "0";
+    } catch (e) {
+      return true;
+    }
+  });
+  const prevPending = useRef(null);
+  const tickRef = useRef(0);
+  const fileInputRef = useRef(null);
   const [hideScores, setHideScores] = useState(() => {
     try {
       return localStorage.getItem("vc_hide_scores") === "1";
@@ -142,6 +257,23 @@ function AdminPanel({ onLogout }) {
     } catch (e) {}
   }
 
+  function toggleSound(v) {
+    setSoundOn(v);
+    try {
+      localStorage.setItem("vc_admin_sound", v ? "1" : "0");
+    } catch (e) {}
+    if (v) playBeep(); // tarayıcı sesi bu tıklamayla etkinleştirir
+  }
+
+  // Sunucudan tam yedeği al ve tarayıcıda sakla (takım yoksa saklananı siler)
+  const snapshotBackup = useCallback(async () => {
+    try {
+      const d = await api.exportBackup();
+      storeBackup(d);
+      setStoredBackup(readStoredBackup());
+    } catch (e) {}
+  }, []);
+
   const refresh = useCallback(async () => {
     const [o, q, sc] = await Promise.allSettled([api.overview(), api.queue(), api.getScored()]);
     if (o.status === "fulfilled") setOverview(o.value);
@@ -151,10 +283,17 @@ function AdminPanel({ onLogout }) {
     if (o.status === "fulfilled") {
       setOffline(false);
       setLastOk(new Date());
+      // Takım varken yaklaşık 30 sn'de bir yedeği tarayıcıda tazele
+      if (o.value.teamCount > 0) {
+        if (tickRef.current % 8 === 0) snapshotBackup();
+        tickRef.current += 1;
+      } else {
+        tickRef.current = 0;
+      }
     } else {
       setOffline(true);
     }
-  }, []);
+  }, [snapshotBackup]);
 
   useEffect(() => {
     api.getQr().then(setQr).catch(() => {});
@@ -169,7 +308,12 @@ function AdminPanel({ onLogout }) {
     setResetMsg(null);
     try {
       const r = await api.resetSession(resetText);
-      setResetMsg(`Oturum sıfırlandı. Yedek: ${r.backupFile} (${r.backedUpTeams} takım)`);
+      if (r.backup) saveJsonFile(r.backup, `vc_dedektifleri_${r.backupFile}`);
+      clearStoredBackup();
+      setStoredBackup(null);
+      setResetMsg(
+        `Oturum sıfırlandı. ${r.backedUpTeams} takımın yedeği bilgisayarınıza indirildi (${r.backupFile}).`
+      );
       setShowReset(false);
       setResetText("");
       refresh();
@@ -187,6 +331,45 @@ function AdminPanel({ onLogout }) {
       setTimeout(() => setBroadcastStatus(null), 3000);
     } catch (e) {
       setBroadcastStatus("Duyuru kaldırılamadı.");
+    }
+  }
+
+  async function doRestore(dump, label) {
+    setRestoreMsg(null);
+    try {
+      const r = await api.restoreBackup(dump);
+      setRestoreMsg(`${label}: ${r.restoredTeams} takım geri yüklendi.`);
+      tickRef.current = 0;
+      refresh();
+    } catch (e) {
+      setRestoreMsg(e.message || "Geri yükleme başarısız.");
+    }
+  }
+
+  async function handleRestoreFile(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const dump = JSON.parse(await file.text());
+      const n = dump?.tables?.teams?.length ?? 0;
+      if (
+        !window.confirm(
+          `Mevcut TÜM veri silinip yedekteki ${n} takım geri yüklenecek. Devam edilsin mi?`
+        )
+      )
+        return;
+      await doRestore(dump, "Dosyadan geri yükleme");
+    } catch (err) {
+      setRestoreMsg("Yedek dosyası okunamadı: " + (err.message || "geçersiz dosya"));
+    }
+  }
+
+  async function handleBackupDownload() {
+    try {
+      await api.downloadBackup();
+    } catch (e) {
+      window.alert(e.message || "Yedek indirilemedi.");
     }
   }
 
@@ -239,6 +422,21 @@ function AdminPanel({ onLogout }) {
     (queue?.pendingFinalA?.length || 0) +
     (queue?.anaKanitPending?.length || 0);
 
+  // Yeni cevap: ses + sekme başlığında bekleyen sayısı
+  useEffect(() => {
+    if (!queue) return;
+    if (prevPending.current !== null && pendingTotal > prevPending.current && soundOn) playBeep();
+    prevPending.current = pendingTotal;
+    document.title = pendingTotal > 0 ? `(${pendingTotal}) Admin — VC Dedektifleri` : "Admin — VC Dedektifleri";
+  }, [pendingTotal, queue, soundOn]);
+
+  useEffect(() => {
+    const original = document.title;
+    return () => {
+      document.title = original;
+    };
+  }, []);
+
   const teamsSorted = [...(overview?.teams || [])].sort((a, b) => b.totalScore - a.totalScore);
   const top3 = teamsSorted.slice(0, 3);
 
@@ -247,6 +445,33 @@ function AdminPanel({ onLogout }) {
       {offline && (
         <div style={{ background: "#c62828", color: "#fff", padding: "0.5rem 1.4rem", fontWeight: 700, fontSize: "0.9rem" }}>
           ⚠ Sunucuya ulaşılamıyor — ekrandaki veriler eski olabilir. Son başarılı güncelleme: {formatClock(lastOk)}
+        </div>
+      )}
+      {!offline && overview && overview.teamCount === 0 && storedBackup && storedBackup.teamCount > 0 && (
+        <div className="admin-banner">
+          <span>
+            Sunucudaki veri sıfırlanmış görünüyor (sunucu yeniden başlamış olabilir). Bu tarayıcıdaki son yedek:{" "}
+            <b>{storedBackup.teamCount} takım</b>, {formatClock(new Date(storedBackup.savedAt))}.
+          </span>
+          <span style={{ whiteSpace: "nowrap" }}>
+            <button
+              className="btn"
+              style={{ width: "auto", margin: "0 8px 0 0", padding: "0.35em 0.9em", fontSize: "0.82rem" }}
+              onClick={() => doRestore(storedBackup.dump, "Otomatik yedek")}
+            >
+              Yedeği geri yükle
+            </button>
+            <button
+              className="btn secondary"
+              style={{ width: "auto", margin: 0, padding: "0.35em 0.9em", fontSize: "0.82rem", color: "#101b3d", borderColor: "#101b3d" }}
+              onClick={() => {
+                clearStoredBackup();
+                setStoredBackup(null);
+              }}
+            >
+              Yoksay
+            </button>
+          </span>
         </div>
       )}
       <div className="admin-header">
@@ -321,6 +546,15 @@ function AdminPanel({ onLogout }) {
                 {broadcastStatus}
               </div>
             )}
+            {overview?.broadcast && (
+              <div className="muted" style={{ fontSize: "0.8rem", marginTop: 8 }}>
+                Yayında: “{overview.broadcast.message}”
+                <br />
+                <b>
+                  {overview.broadcast.seenCount} / {overview.teamCount} takım gördü
+                </b>
+              </div>
+            )}
           </div>
 
           <div className="admin-card">
@@ -370,6 +604,37 @@ function AdminPanel({ onLogout }) {
               <input type="checkbox" checked={hideScores} onChange={(e) => toggleHideScores(e.target.checked)} />
               Puanları bu ekranda gizle (projeksiyon)
             </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.88rem", marginBottom: 10 }}>
+              <input type="checkbox" checked={soundOn} onChange={(e) => toggleSound(e.target.checked)} />
+              🔔 Kuyruğa yeni cevap gelince ses çal
+            </label>
+
+            <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+              <button
+                className="btn secondary"
+                onClick={handleBackupDownload}
+                style={{ flex: 1, margin: 0, padding: "0.45em 0.6em", fontSize: "0.8rem", color: "#101b3d", borderColor: "#101b3d" }}
+              >
+                💾 Yedeği indir
+              </button>
+              <button
+                className="btn secondary"
+                onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                style={{ flex: 1, margin: 0, padding: "0.45em 0.6em", fontSize: "0.8rem", color: "#101b3d", borderColor: "#101b3d" }}
+              >
+                ♻️ Yedekten yükle
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                style={{ display: "none" }}
+                onChange={handleRestoreFile}
+              />
+            </div>
+            {restoreMsg && (
+              <div style={{ fontSize: "0.8rem", marginBottom: 10, fontWeight: 700, wordBreak: "break-word" }}>{restoreMsg}</div>
+            )}
 
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.88rem", marginBottom: 10 }}>
               <input
@@ -473,7 +738,12 @@ function AdminPanel({ onLogout }) {
             </button>
           </div>
 
-          {tab === "takimlar" && <TeamsTable overview={overview} hideScores={hideScores} onChanged={refresh} />}
+          {tab === "takimlar" && <TeamsTable
+              overview={overview}
+              hideScores={hideScores}
+              onChanged={refresh}
+              onTeamDeleted={snapshotBackup}
+            />}
           {tab === "kuyruk" && <EvaluationQueue queue={queue} onScored={refresh} />}
           {tab === "puanlanan" && <ScoredList scored={scored} onScored={refresh} />}
         </div>
@@ -483,13 +753,28 @@ function AdminPanel({ onLogout }) {
 }
 
 
-function TeamsTable({ overview, hideScores, onChanged }) {
+function TeamsTable({ overview, hideScores, onChanged, onTeamDeleted }) {
   const nowMs = overview?.serverTime ? Date.parse(overview.serverTime) : Date.now();
   const max = overview?.maxTotalScore || 1200;
   const teams = overview?.teams || [];
+  const groupCounts = {};
+  teams.forEach((t) => {
+    const g = stageGroup(t);
+    groupCounts[g] = (groupCounts[g] || 0) + 1;
+  });
 
   return (
     <div className="admin-card">
+      {teams.length > 0 && (
+        <div className="chip-row">
+          {GROUPS.map((g) => (
+            <span key={g} className={"chip" + (groupCounts[g] ? " on" : "")}>
+              {g}: <b>{groupCounts[g] || 0}</b>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="table-scroll">
       <table className="admin-table">
         <thead>
           <tr>
@@ -504,7 +789,7 @@ function TeamsTable({ overview, hideScores, onChanged }) {
         </thead>
         <tbody>
           {teams.map((t) => (
-            <TeamRow key={t.id} t={t} nowMs={nowMs} max={max} hideScores={hideScores} onChanged={onChanged} />
+            <TeamRow key={t.id} t={t} nowMs={nowMs} max={max} hideScores={hideScores} onChanged={onChanged} onTeamDeleted={onTeamDeleted} />
           ))}
           {teams.length === 0 && (
             <tr>
@@ -515,11 +800,12 @@ function TeamsTable({ overview, hideScores, onChanged }) {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
 
-function TeamRow({ t, nowMs, max, hideScores, onChanged }) {
+function TeamRow({ t, nowMs, max, hideScores, onChanged, onTeamDeleted }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(t.name);
   const [members, setMembers] = useState(t.members || "");
@@ -547,6 +833,7 @@ function TeamRow({ t, nowMs, max, hideScores, onChanged }) {
     try {
       await api.deleteTeam(t.id);
       onChanged();
+      if (onTeamDeleted) onTeamDeleted(); // tarayıcıdaki yedeği güncelle (son takım silindiyse temizler)
     } catch (e) {
       setErr(e.message || "Silinemedi.");
       setConfirmDelete(false);
@@ -612,7 +899,16 @@ function TeamRow({ t, nowMs, max, hideScores, onChanged }) {
         )}
         {err && <div style={{ color: "#c62828", fontSize: "0.75rem", fontWeight: 700 }}>{err}</div>}
       </td>
-      <td>{t.stageLabel}</td>
+      <td>
+        {t.stageLabel}
+        <div className="progress-track" title={`Oyun ilerlemesi: %${progressPercent(t)}`}>
+          <div
+            className={"progress-fill" + (finished ? " done" : stuck ? " stuck" : "")}
+            style={{ width: `${progressPercent(t)}%` }}
+          />
+        </div>
+        <div className="muted" style={{ fontSize: "0.7rem" }}>%{progressPercent(t)}</div>
+      </td>
       <td>{t.currentBolum}</td>
       <td>{t.currentMiniVaka}</td>
       <td>{t.answeredCount} / 9</td>

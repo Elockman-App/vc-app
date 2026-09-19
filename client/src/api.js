@@ -167,12 +167,17 @@ export const api = {
   downloadCsv: () => downloadFile("/admin/export-csv", "vc_dedektifleri_skor_raporu.csv"),
   downloadAnswersCsv: () =>
     downloadFile("/admin/export-answers-csv", "vc_dedektifleri_cevap_detaylari.csv"),
+  // yedek: JSON olarak al (panel tarayıcıda saklar) / dosyaya indir / geri yükle
+  exportBackup: () => request("/admin/export-backup"),
+  downloadBackup: () => downloadFile("/admin/export-backup", "vc_dedektifleri_yedek.json"),
+  restoreBackup: (backup) =>
+    request("/admin/restore", { method: "POST", body: JSON.stringify({ confirm: "GERI YUKLE", backup }) }),
   renameTeam: (id, name, members) =>
     request(`/admin/teams/${id}`, { method: "PUT", body: JSON.stringify({ name, members }) }),
   deleteTeam: (id) => request(`/admin/teams/${id}`, { method: "DELETE" }),
 
   // oturum
-  getSession: () => request(`/session`),
+  getSession: (teamId) => request(teamId ? `/session?teamId=${encodeURIComponent(teamId)}` : `/session`),
 
   // qr
   getQr: () => request("/qr")

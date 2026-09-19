@@ -135,6 +135,13 @@ try {
   /* Kolonlar zaten varsa yoksay */
 }
 
+// Duyuruyu hangi takımların gördüğünü izlemek için (admin paneli "X takımdan Y'si gördü")
+try {
+  db.exec("ALTER TABLE teams ADD COLUMN seen_broadcast_at TEXT");
+} catch (e) {
+  /* Kolon zaten varsa yoksay */
+}
+
 const cfg = db.prepare("SELECT * FROM session_config WHERE id = 1").get();
 if (!cfg) {
   db.prepare(

@@ -112,6 +112,17 @@ async function waitUp() {
     assert.strictEqual((await call("GET", "/session")).json.broadcastMessage, null);
     console.log("Duyuru yayınlanıyor ve kaldırılabiliyor. ✔");
 
+    // 7a) Duyuru ulaşımı: takım oturum bilgisini çekince "gördü" sayılır
+    await call("POST", "/admin/broadcast", { message: "Ulaşım testi" }, token);
+    let ovb = await call("GET", "/admin/overview", null, token);
+    assert.strictEqual(ovb.json.broadcast.seenCount, 0);
+    await call("GET", `/session?teamId=${teamId}`);
+    ovb = await call("GET", "/admin/overview", null, token);
+    assert.strictEqual(ovb.json.broadcast.seenCount, 1);
+    await call("POST", "/admin/broadcast", { message: "" }, token);
+    assert.strictEqual((await call("GET", "/admin/overview", null, token)).json.broadcast, null);
+    console.log("Duyurunun kaç takıma ulaştığı sayılıyor. ✔");
+
     // 7b) Genel bakış yeni alanları içeriyor
     const ov = await call("GET", "/admin/overview", null, token);
     assert.strictEqual(ov.json.maxTotalScore, 1200);
@@ -154,6 +165,28 @@ async function waitUp() {
     assert.strictEqual(dump.tables.team_answers[0].score, 85);
     assert.strictEqual((await call("GET", "/admin/overview", null, token)).json.teamCount, 0);
     console.log("Sıfırlama onay istiyor, önce yedek alıyor. ✔");
+
+    // 8b) Yedek indirme + sıfırlama sonrası geri yükleme (aynı takım kimlikleriyle)
+    assert.ok(reset.json.backup && reset.json.backup.tables.teams.length === 1, "reset yanıtında yedek yok");
+    assert.strictEqual((await call("GET", "/admin/export-backup")).status, 401);
+    assert.strictEqual((await call("POST", "/admin/restore", { backup: reset.json.backup })).status, 401);
+    assert.strictEqual((await call("POST", "/admin/restore", { backup: reset.json.backup }, token)).status, 400);
+    assert.strictEqual(
+      (await call("POST", "/admin/restore", { confirm: "GERI YUKLE", backup: { tables: "x" } }, token)).status,
+      400
+    );
+    const rest = await call("POST", "/admin/restore", { confirm: "GERI YUKLE", backup: reset.json.backup }, token);
+    assert.strictEqual(rest.status, 200);
+    assert.strictEqual(rest.json.restoredTeams, 1);
+    const ov2 = await call("GET", "/admin/overview", null, token);
+    assert.strictEqual(ov2.json.teamCount, 1);
+    assert.strictEqual(ov2.json.teams[0].id, teamId, "takım kimliği korunmadı");
+    assert.strictEqual(ov2.json.teams[0].totalScore, 85);
+    assert.strictEqual((await call("GET", `/teams/${teamId}`)).status, 200);
+    const exp = await fetch(`${BASE}/admin/export-backup`, { headers: { Authorization: `Bearer ${token}` } });
+    const expJson = await exp.json();
+    assert.strictEqual(expJson.tables.teams.length, 1);
+    console.log("Yedek indirme ve geri yükleme (kimlikler ve puanlar korunarak) çalışıyor. ✔");
 
     // 9) Kaba kuvvet sınırı
     let locked = false;

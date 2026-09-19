@@ -48,7 +48,7 @@ export default function Play() {
 
     const checkSession = async () => {
       try {
-        const sess = await api.getSession();
+        const sess = await api.getSession(team.id);
         if (sess?.broadcastMessage && sess?.broadcastUpdatedAt !== lastBroadcastTime) {
           setBroadcastMsg(sess.broadcastMessage);
           setLastBroadcastTime(sess.broadcastUpdatedAt);

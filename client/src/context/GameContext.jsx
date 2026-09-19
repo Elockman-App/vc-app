@@ -19,6 +19,7 @@ function writeSnapshot(t) {
     localStorage.setItem(
       SNAPSHOT_KEY,
       JSON.stringify({
+        id: t.id,
         name: t.name,
         members: t.members || "",
         stage: t.currentStage,
@@ -159,11 +160,31 @@ export function GameProvider({ children }) {
     return t;
   }, []);
 
+  /** Admin yedeği geri yüklediyse eski takım kimliği yeniden geçerli olur: varsa doğrudan onunla devam et.
+   * Kayıt hâlâ yoksa false döner (kurtarma ekranı açık kalır). */
+  const resumeIfExists = useCallback(async () => {
+    const snap = readSnapshot();
+    if (!snap || !snap.id) return false;
+    try {
+      const t = await api.getTeam(snap.id);
+      try {
+        localStorage.setItem(STORAGE_KEY, t.id);
+      } catch (e) {}
+      setTeam(t);
+      setTeamMissing(false);
+      await loadMiniVakaIfNeeded(t);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }, [loadMiniVakaIfNeeded]);
+
   /** Sunucu yeniden başladıktan sonra: aynı takım adıyla yeni kayıt açar ve kaldığı aşamaya götürür.
    * (Önceki puanlar sunucuyla birlikte gittiği için puan sıfırdan başlar.) */
   const restoreTeam = useCallback(async () => {
     const snap = readSnapshot();
     if (!snap) return null;
+    if (await resumeIfExists()) return true;
     let t = await api.createTeam(snap.name, snap.members);
     try {
       localStorage.setItem(STORAGE_KEY, t.id);
@@ -179,7 +200,7 @@ export function GameProvider({ children }) {
     setTeamMissing(false);
     await loadMiniVakaIfNeeded(t);
     return t;
-  }, [loadMiniVakaIfNeeded]);
+  }, [loadMiniVakaIfNeeded, resumeIfExists]);
 
   /** Kurtarma ekranında "yeni takımla başla" seçeneği */
   const startFresh = useCallback(() => {
@@ -232,6 +253,7 @@ export function GameProvider({ children }) {
         teamMissing,
         createTeam,
         restoreTeam,
+        resumeIfExists,
         startFresh,
         advance,
         goTo,

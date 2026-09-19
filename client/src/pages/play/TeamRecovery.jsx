@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useGame } from "../../context/GameContext";
 
 /**
@@ -6,9 +6,17 @@ import { useGame } from "../../context/GameContext";
  * oyuncunun takım kaydı sunucuda bulunamamıştır.
  */
 export default function TeamRecovery() {
-  const { restoreTeam, startFresh } = useGame();
+  const { restoreTeam, resumeIfExists, startFresh } = useGame();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
+
+  // Oyun yöneticisi yedeği geri yüklerse takım kaydı yeniden görünür: kendiliğinden devam et
+  useEffect(() => {
+    const t = setInterval(() => {
+      resumeIfExists();
+    }, 5000);
+    return () => clearInterval(t);
+  }, [resumeIfExists]);
 
   async function handleRestore() {
     setBusy(true);
@@ -31,15 +39,18 @@ export default function TeamRecovery() {
             <div className="divider-eyebrow">BİLGİLENDİRME</div>
             <h1 style={{ fontSize: "1.5rem" }}>Oturum yenilendi</h1>
             <p className="muted">
-              Sunucu yeniden başlatılmış ya da oturum sıfırlanmış olabilir, takım kaydınız artık
-              bulunamıyor. Kaldığınız aşamadan devam edebilirsiniz. Önceki puanlarınız sıfırlanmış olur,
-              bunu oyun yöneticisine bildirin.
+              Sunucu yeniden başlatılmış ya da oturum sıfırlanmış olabilir, takım kaydınız bulunamıyor.
+            </p>
+            <p className="muted">
+              <b>Oyun yöneticisi verileri geri yüklüyorsa bu ekranda birkaç saniye bekleyin</b>, kendiliğinden
+              kaldığınız yerden devam edeceksiniz. Beklemek istemezseniz aşağıdaki düğmeyi kullanın; bu durumda
+              puanlarınız sıfırdan başlar, oyun yöneticisine bildirin.
             </p>
           </div>
           <div className="card-dark">
             {err && <p style={{ color: "#ff8080", fontSize: "0.9rem" }}>{err}</p>}
             <button className="btn" onClick={handleRestore} disabled={busy}>
-              {busy ? "Geri yükleniyor..." : "Kaldığım yerden devam et"}
+              {busy ? "Geri yükleniyor..." : "Beklemeden yeni kayıtla devam et"}
             </button>
             <button className="btn secondary" style={{ marginTop: "0.6rem" }} onClick={startFresh} disabled={busy}>
               Yeni takımla başla

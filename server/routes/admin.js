@@ -5,7 +5,7 @@ const { recomputeTotalScore } = require("../utils/scoring");
 const { suggestScore } = require("../utils/keywordScore");
 const { requireAdmin, loginHandler } = require("../utils/adminAuth");
 const { parseScore } = require("../utils/parseScore");
-const { backupAll } = require("../utils/backup");
+const { backupAll, dumpAll, restoreAll } = require("../utils/backup");
 
 const router = express.Router();
 
@@ -71,6 +71,15 @@ router.get("/overview", (req, res) => {
     teamCount: teamData.length,
     maxTotalScore: MAX_TOTAL_SCORE,
     serverTime: new Date().toISOString(),
+    broadcast: sessionConfig?.broadcast_message
+      ? {
+          message: sessionConfig.broadcast_message,
+          updatedAt: sessionConfig.broadcast_updated_at,
+          seenCount: teams.filter(
+            (t) => t.seen_broadcast_at && t.seen_broadcast_at === sessionConfig.broadcast_updated_at
+          ).length
+        }
+      : null,
     teams: teamData,
     bolumler: BOLUMLER.map((b) => ({ num: b.num, baslik: b.baslik, anaKanit: b.anaKanit }))
   });
@@ -321,6 +330,35 @@ router.delete("/teams/:id", (req, res) => {
   res.json({ ok: true, deleted: team.name, backupFile: backup.fileName });
 });
 
+// GET /api/admin/export-backup — tüm oyun verisini JSON olarak indirir (geri yüklenebilir)
+router.get("/export-backup", (req, res) => {
+  const dump = dumpAll("manuel-indirme");
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="vc_dedektifleri_yedek_${new Date().toISOString().replace(/[:.]/g, "-")}.json"`
+  );
+  res.send(JSON.stringify(dump));
+});
+
+// POST /api/admin/restore  { confirm: "GERI YUKLE", backup: {...} } — mevcut veriyi yedekle DEĞİŞTİRİR
+router.post("/restore", (req, res) => {
+  if (req.body?.confirm !== "GERI YUKLE") {
+    return res.status(400).json({ error: 'Onay için "GERI YUKLE" yazılmalıdır.' });
+  }
+  try {
+    backupAll("geri-yukleme-oncesi"); // mevcut durumu (varsa) yine de yedekle
+  } catch (e) {
+    /* disk yazılamıyorsa geri yüklemeyi engelleme */
+  }
+  try {
+    const r = restoreAll(req.body.backup);
+    res.json({ ok: true, restoredTeams: r.restoredTeams });
+  } catch (e) {
+    res.status(400).json({ error: e.message || "Geri yükleme başarısız." });
+  }
+});
+
 // GET /api/admin/export-answers-csv — her cevabı/puanı tek satırda veren ayrıntılı rapor
 router.get("/export-answers-csv", (req, res) => {
   const header = ["Takim", "Tur", "Referans", "Baslik", "Cevap", "Puan", "Maks Puan", "Puanlanma Zamani (UTC)"];
@@ -392,7 +430,9 @@ router.post("/reset", (req, res) => {
   db.prepare(
     "UPDATE session_config SET broadcast_message = NULL, broadcast_updated_at = ? WHERE id = 1"
   ).run(new Date().toISOString());
-  res.json({ ok: true, backupFile: backup.fileName, backedUpTeams: backup.teamCount });
+  // Dökümü yanıtla birlikte döndürüyoruz: ücretsiz Render'da sunucu diski kalıcı olmadığından
+  // panel bunu tarayıcıya indirir.
+  res.json({ ok: true, backupFile: backup.fileName, backedUpTeams: backup.teamCount, backup: backup.dump });
 });
 
 module.exports = router;
