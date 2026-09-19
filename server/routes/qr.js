@@ -1,6 +1,7 @@
 const express = require("express");
 const QRCode = require("qrcode");
 const { getLocalIp } = require("../utils/network");
+const { requireAdmin } = require("../utils/adminAuth");
 
 const router = express.Router();
 
@@ -28,7 +29,7 @@ function resolveBaseUrl(req) {
 }
 
 // GET /api/qr -> { playUrl, adminUrl, qrDataUrl }
-router.get("/", async (req, res) => {
+router.get("/", requireAdmin, async (req, res) => {
   try {
     const base = resolveBaseUrl(req);
     const playUrl = `${base}/play`;

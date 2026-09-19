@@ -14,9 +14,10 @@ const path = require("path");
 const fs = require("fs");
 const { DatabaseSync } = require("node:sqlite");
 
-const dbDir = path.join(__dirname, "db");
+// DB_PATH: testler ve özel kurulumlar için veritabanı dosyasının yerini değiştirir.
+const dbPath = process.env.DB_PATH || path.join(__dirname, "db", "game.sqlite3");
+const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
-const dbPath = path.join(dbDir, "game.sqlite3");
 
 const rawDb = new DatabaseSync(dbPath);
 
@@ -40,6 +41,8 @@ const db = {
     };
   }
 };
+
+db.path = dbPath;
 
 db.pragma("journal_mode = WAL");
 

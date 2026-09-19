@@ -29,7 +29,7 @@ puan girer. Tek otomatik puanlanan bölüm, Son Gece'deki "Üç Yolun Sınavı"d
 3. `install.bat`'a çift tıklayın (hem sunucu hem arayüz bağımlılıklarını kurar
    ve arayüzü derler).
 4. Doğrulama: `server` klasöründe `npm test` — tüm testler geçmeli
-   (`✅ TÜM SMOKE TESTLER GEÇTİ`).
+   (`✅ TÜM SMOKE TESTLER GEÇTİ` ve `✅ ADMİN TESTLERİ GEÇTİ`).
 
 ## Çalıştırma (Etkinlik Günü, İnternetsiz)
 
@@ -38,6 +38,20 @@ puan girer. Tek otomatik puanlanan bölüm, Son Gece'deki "Üç Yolun Sınavı"d
 3. Konsolda görünen adresleri kullanın:
    - **Admin (projeksiyona yansıtın):** `http://<ip>:3000/admin`
    - **Oyuncu girişi (QR ile taranır):** `http://<ip>:3000/play`
+
+## Admin Paneli Girişi (PIN)
+
+Admin paneli (`/admin`) ve tüm `/api/admin/*` rotaları **PIN** ile korunur.
+
+- **Yerel (Windows dizüstü):** `start.bat` penceresinde sunucu açılırken "ADMİN PIN" satırı görünür.
+  Sabit bir PIN istiyorsanız `start.bat`'tan önce `set ADMIN_PIN=123456` tanımlayın.
+- **Render.com:** Render → servis → *Environment* → `ADMIN_PIN` değişkenini ekleyin (tahmin edilmesi zor bir değer seçin).
+  Değişken tanımlanmazsa her açılışta rastgele PIN üretilir ve *Logs* ekranında görünür.
+- PIN'i yanlış girenler dakikada 5 denemeyle sınırlanır; oturum 12 saat geçerlidir.
+- Oyuncu ekranı (`/play`) PIN gerektirmez.
+
+**Oturumu Sıfırla** artık "SIFIRLA" yazılmasını ister ve silmeden önce otomatik yedek alır
+(`server/db/backups/yedek-<tarih>.json`). Yanlış puan girdiyseniz **Puanlananlar** sekmesinden düzeltebilirsiniz.
 
 ## Facilitator İçin Notlar
 
@@ -60,10 +74,14 @@ vc-app/
 │   ├── server.js              # API + derlenmiş arayüzü sunar
 │   ├── db.js                  # SQLite şeması (6 tablo)
 │   ├── smoketest.js           # `npm test` ile çalışan doğrulama
+│   ├── admintest.js           # Admin yetki/puanlama/sıfırlama testleri (geçici DB kullanır)
 │   ├── data/cases.js          # 3 bölüm + 9 mini vaka + Final + Son Gece verisi
 │   ├── utils/
 │   │   ├── stages.js          # Doğrusal akış aşama listesi
-│   │   └── scoring.js         # Toplam puan hesaplama (4 kaynaktan)
+│   │   ├── scoring.js         # Toplam puan hesaplama (4 kaynaktan)
+│   │   ├── adminAuth.js       # Admin PIN girişi + token doğrulama
+│   │   ├── parseScore.js      # Facilitator puan doğrulaması
+│   │   └── backup.js          # Sıfırlama öncesi JSON yedeği
 │   └── routes/
 │       ├── teams.js           # Takım oluşturma + aşama ilerletme
 │       ├── miniVaka.js        # Olay/Kanıt/Karar içeriği + cevap gönderme

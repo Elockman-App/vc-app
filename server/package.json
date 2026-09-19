@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node --no-warnings server.js",
     "dev": "node --no-warnings server.js",
-    "test": "node --no-warnings smoketest.js"
+    "test": "node --no-warnings smoketest.js && node --no-warnings admintest.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
