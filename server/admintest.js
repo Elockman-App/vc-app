@@ -42,6 +42,18 @@ async function waitUp() {
   throw new Error("Sunucu başlamadı");
 }
 
+// Varsayılan PIN: ADMIN_PIN yoksa sabit PIN kullanılır, tanımlıysa o geçerli olur
+{
+  const { execFileSync } = require("child_process");
+  const env = { ...process.env };
+  delete env.ADMIN_PIN;
+  const out = execFileSync(process.execPath, ["-e", "const a=require('./utils/adminAuth');console.log(a.ADMIN_PIN+','+a.pinFromEnv)"], { cwd: __dirname, env }).toString().trim();
+  assert.strictEqual(out, "1326155,false");
+  const out2 = execFileSync(process.execPath, ["-e", "const a=require('./utils/adminAuth');console.log(a.ADMIN_PIN+','+a.pinFromEnv)"], { cwd: __dirname, env: { ...env, ADMIN_PIN: "998877" } }).toString().trim();
+  assert.strictEqual(out2, "998877,true");
+  console.log("ADMIN_PIN yoksa sabit varsayılan PIN, varsa ortam değişkeni kullanılıyor. ✔");
+}
+
 // QR adresi: Render'da alan adı (Host başlığı) kullanılmalı, iç ağ IP'si değil
 {
   const { resolveBaseUrl } = require("./utils/baseUrl");

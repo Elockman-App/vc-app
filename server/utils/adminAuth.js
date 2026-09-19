@@ -4,8 +4,8 @@ const crypto = require("crypto");
  * ADMİN YETKİ KONTROLÜ
  *
  * - PIN, `ADMIN_PIN` ortam değişkeninden okunur (Render'da Environment sekmesinden tanımlayın).
- * - `ADMIN_PIN` tanımlı değilse sunucu her açılışta rastgele 6 haneli bir PIN üretir ve
- *   konsola yazar. Yani panel HİÇBİR ZAMAN korumasız açılmaz.
+ * - `ADMIN_PIN` tanımlı değilse kodda tanımlı sabit varsayılan PIN kullanılır (DEFAULT_PIN).
+ *   Yani panel HİÇBİR ZAMAN korumasız açılmaz ve PIN her açılışta değişmez.
  * - Giriş başarılı olunca imzalı, süreli bir token döner (varsayılan 12 saat).
  *   Token imzası PIN'den türetildiği için sunucu yeniden başlasa da (PIN aynı kaldığı sürece)
  *   açık oturumlar geçerli kalır.
@@ -16,13 +16,14 @@ const TOKEN_TTL_MS = 12 * 60 * 60 * 1000;
 const MAX_FAILS = 5;
 const WINDOW_MS = 60 * 1000;
 
-let pinWasGenerated = false;
-const ADMIN_PIN = (() => {
-  const fromEnv = (process.env.ADMIN_PIN || "").trim();
-  if (fromEnv) return fromEnv;
-  pinWasGenerated = true;
-  return String(crypto.randomInt(0, 1000000)).padStart(6, "0");
-})();
+// Varsayılan PIN: ADMIN_PIN ortam değişkeni tanımlı değilse kullanılır.
+// NOT: Depo herkese açıksa bu değer kaynak kodda görünür. Daha güvenli olması için Render'da
+// ADMIN_PIN tanımlayın veya GitHub deposunu "private" yapın.
+const DEFAULT_PIN = "1326155";
+
+const fromEnv = (process.env.ADMIN_PIN || "").trim();
+const pinFromEnv = !!fromEnv;
+const ADMIN_PIN = fromEnv || DEFAULT_PIN;
 
 const SECRET = crypto.createHash("sha256").update("vc-admin-secret:" + ADMIN_PIN).digest();
 
@@ -101,4 +102,4 @@ function requireAdmin(req, res, next) {
   res.status(401).json({ error: "Yetkisiz erişim. Lütfen admin PIN'i ile giriş yapın." });
 }
 
-module.exports = { requireAdmin, loginHandler, verifyToken, extractToken, ADMIN_PIN, pinWasGenerated };
+module.exports = { requireAdmin, loginHandler, verifyToken, extractToken, ADMIN_PIN, pinFromEnv };

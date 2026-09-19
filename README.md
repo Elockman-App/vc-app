@@ -43,10 +43,11 @@ puan girer. Tek otomatik puanlanan bölüm, Son Gece'deki "Üç Yolun Sınavı"d
 
 Admin paneli (`/admin`) ve tüm `/api/admin/*` rotaları **PIN** ile korunur.
 
-- **Yerel (Windows dizüstü):** `start.bat` penceresinde sunucu açılırken "ADMİN PIN" satırı görünür.
-  Sabit bir PIN istiyorsanız `start.bat`'tan önce `set ADMIN_PIN=123456` tanımlayın.
-- **Render.com:** Render → servis → *Environment* → `ADMIN_PIN` değişkenini ekleyin (tahmin edilmesi zor bir değer seçin).
-  Değişken tanımlanmazsa her açılışta rastgele PIN üretilir ve *Logs* ekranında görünür.
+- **Varsayılan:** `ADMIN_PIN` ortam değişkeni tanımlı değilse kodda tanımlı sabit PIN kullanılır
+  (`server/utils/adminAuth.js` → `DEFAULT_PIN`). PIN her açılışta aynıdır.
+- **Değiştirmek için:** Render → servis → *Environment* → `ADMIN_PIN` ekleyin (yerelde `set ADMIN_PIN=123456`).
+  Ortam değişkeni varsa varsayılanın yerine o kullanılır. Depo herkese açıksa varsayılan PIN kaynak kodda
+  görünür; daha güvenli olması için `ADMIN_PIN` tanımlayın veya depoyu "private" yapın.
 - PIN'i yanlış girenler dakikada 5 denemeyle sınırlanır; oturum 12 saat geçerlidir.
 - Oyuncu ekranı (`/play`) PIN gerektirmez.
 

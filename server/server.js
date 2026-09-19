@@ -3,7 +3,7 @@ const fs = require("fs");
 const express = require("express");
 const cors = require("cors");
 const { getLocalIp } = require("./utils/network");
-const { ADMIN_PIN, pinWasGenerated } = require("./utils/adminAuth");
+const { pinFromEnv } = require("./utils/adminAuth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -52,11 +52,10 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(` Oyuncu Girişi : http://${ip}:${PORT}/play`);
   console.log(` (Yerel test)  : http://localhost:${PORT}/admin`);
   console.log("------------------------------------------------------------");
-  if (pinWasGenerated) {
-    console.log(` ADMİN PIN     : ${ADMIN_PIN}   (bu açılış için rastgele üretildi)`);
-    console.log(" Sabit PIN için ADMIN_PIN ortam değişkenini tanımlayın.");
-  } else {
+  if (pinFromEnv) {
     console.log(" ADMİN PIN     : ADMIN_PIN ortam değişkeninden okundu.");
+  } else {
+    console.log(" ADMİN PIN     : varsayılan PIN kullanılıyor (ADMIN_PIN ortam değişkeni tanımlı değil).");
   }
   console.log("============================================================");
   console.log("");
