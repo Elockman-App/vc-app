@@ -189,7 +189,7 @@ function AdminLogin({ onLoggedIn }) {
         <form className="admin-card" onSubmit={submit}>
           <h3 style={{ marginTop: 0 }}>Admin PIN</h3>
           <p className="muted" style={{ fontSize: "0.85rem" }}>
-            PIN, sunucu konsolunda (sunucuyu başlattığınız pencere) veya Render'daki ADMIN_PIN ayarında yazar.
+            Oyun yöneticisinin verdiği PIN'i girin.
           </p>
           <input
             type="password"
