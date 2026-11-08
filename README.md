@@ -31,8 +31,7 @@ Karar soruları açık uçludur. Takımlar serbest metin yazar, oyun yöneticisi
 
 `/admin` adresi **PIN** ile korunur.
 
-- Varsayılan PIN `server/utils/adminAuth.js` içinde (`DEFAULT_PIN`). `ADMIN_PIN` ortam değişkeni tanımlıysa o kullanılır
-  (Render → servis → Environment). Depo herkese açıksa varsayılan PIN görünür; depoyu "private" yapın veya `ADMIN_PIN` tanımlayın.
+- Yönetici girişi için Render → servis → Environment bölümünde `ADMIN_PIN` tanımlanmalıdır. Değer yoksa admin oturum açma ve token doğrulaması kapalı kalır; kaynak kodda varsayılan PIN tutulmaz. Canlı ortamda yalnızca gizli, güçlü bir değer kullanın.
 - PIN'i yanlış girenler dakikada 5 denemeyle sınırlanır, oturum 12 saat geçerlidir.
 
 Panelde neler var:
