@@ -4,7 +4,7 @@ const crypto = require("crypto");
  * ADMİN YETKİ KONTROLÜ
  *
  * - PIN, `ADMIN_PIN` ortam değişkeninden okunur (Render'da Environment sekmesinden tanımlayın).
- * - `ADMIN_PIN` tanımlı değilse kodda tanımlı sabit varsayılan PIN kullanılır (DEFAULT_PIN).
+ * - `ADMIN_PIN` yoksa yönetici girişi kapalı kalır; kaynak kodda yedek PIN bulunmaz.
  *   Yani panel HİÇBİR ZAMAN korumasız açılmaz ve PIN her açılışta değişmez.
  * - Giriş başarılı olunca imzalı, süreli bir token döner (varsayılan 12 saat).
  *   Token imzası PIN'den türetildiği için sunucu yeniden başlasa da (PIN aynı kaldığı sürece)
@@ -16,14 +16,10 @@ const TOKEN_TTL_MS = 12 * 60 * 60 * 1000;
 const MAX_FAILS = 5;
 const WINDOW_MS = 60 * 1000;
 
-// Varsayılan PIN: ADMIN_PIN ortam değişkeni tanımlı değilse kullanılır.
-// NOT: Depo herkese açıksa bu değer kaynak kodda görünür. Daha güvenli olması için Render'da
-// ADMIN_PIN tanımlayın veya GitHub deposunu "private" yapın.
-const DEFAULT_PIN = "1326155";
 
 const fromEnv = (process.env.ADMIN_PIN || "").trim();
 const pinFromEnv = !!fromEnv;
-const ADMIN_PIN = fromEnv || DEFAULT_PIN;
+const ADMIN_PIN = fromEnv;
 
 const SECRET = crypto.createHash("sha256").update("vc-admin-secret:" + ADMIN_PIN).digest();
 
@@ -44,7 +40,7 @@ function issueToken() {
 }
 
 function verifyToken(token) {
-  if (!token || typeof token !== "string") return false;
+  if (!ADMIN_PIN || !token || typeof token !== "string") return false;
   const [payload, sig] = token.split(".");
   if (!payload || !sig) return false;
   const expected = sign(payload);
@@ -77,6 +73,9 @@ function registerFail(ip) {
 
 // POST /api/admin/login  { pin }
 function loginHandler(req, res) {
+  if (!ADMIN_PIN) {
+    return res.status(503).json({ error: "Yönetici girişi yapılandırılmamış." });
+  }
   const ip = req.ip || "unknown";
   if (isLocked(ip)) {
     return res.status(429).json({ error: "Çok fazla hatalı deneme. Bir dakika sonra tekrar deneyin." });

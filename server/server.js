@@ -61,7 +61,7 @@ app.listen(PORT, "0.0.0.0", () => {
   if (pinFromEnv) {
     console.log(" ADMİN PIN     : ADMIN_PIN ortam değişkeninden okundu.");
   } else {
-    console.log(" ADMİN PIN     : varsayılan PIN kullanılıyor (ADMIN_PIN ortam değişkeni tanımlı değil).");
+    console.error(" ADMİN PIN     : ADMIN_PIN yapılandırılmamış; yönetici girişi devre dışı.");
   }
   console.log("============================================================");
   console.log("");
